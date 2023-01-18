@@ -1,5 +1,5 @@
 import { Box, Flex, Grid } from "@chakra-ui/react";
-import SideBar from "../components/sidebar";
+import SideBar from "@components/sidebar";
 
 type AdminLayoutProps = {
   children: JSX.Element;

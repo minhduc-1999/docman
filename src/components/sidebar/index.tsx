@@ -13,8 +13,8 @@ import {
   chakra,
 } from "@chakra-ui/react";
 
-import { MenuIcon } from "../icons";
-import { Route, routes } from "../../routes";
+import { MenuIcon } from "@icons";
+import { Route, routes } from "@/routes";
 import { NavLink as Link } from "react-router-dom";
 
 export default function SimpleSidebar() {

@@ -1,6 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
-import { HomeIcon, DocumentIcon } from "../components/icons";
-import AdminLayout from "../layouts/admin";
+import { HomeIcon, DocumentIcon } from "@icons";
+import AdminLayout from "@layouts/admin";
 
 export type Route = {
   name: string;
