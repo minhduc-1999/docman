@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import { HomeIcon, DocumentIcon } from "@icons";
 import AdminLayout from "@layouts/admin";
+import CriminalInformationView from "@/views/criminal-information";
 
 export type Route = {
   name: string;
@@ -18,10 +19,10 @@ export const routes: Array<Route> = [
     element: <AdminLayout children={<div>Dashboard</div>} />,
   },
   {
-    name: "Document",
-    path: "/document",
+    name: "Criminal Information",
+    path: "/criminal-information",
     icon: DocumentIcon,
-    element: <AdminLayout children={<div>Documents</div>} />,
+    element: <AdminLayout children={<CriminalInformationView />} />,
   },
 ];
 

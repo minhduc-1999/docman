@@ -51,7 +51,7 @@ interface SidebarProps extends BoxProps {
 const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
   return (
     <Box
-      bg={useColorModeValue("white", "gray.900")}
+      bg={useColorModeValue("gray.100", "white")}
       borderRight="1px"
       borderRightColor={useColorModeValue("gray.200", "gray.700")}
       w={{ base: "full", md: 60 }}
@@ -94,11 +94,12 @@ const NavItem = ({ route, ...rest }: NavItemProps) => {
           role="group"
           cursor="pointer"
           _hover={{
-            bg: "cyan.100",
+            bg: "blue.100",
             color: "white",
           }}
-          bg={isActive ? "cyan.400" : "white"}
+          bg={isActive ? "blue.400" : useColorModeValue("gray.100", "white")}
           color={isActive ? "white" : "black"}
+          fontWeight={500}
           {...rest}
         >
           {route.icon}
