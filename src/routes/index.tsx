@@ -15,13 +15,13 @@ export const routes: Array<Route> = [
   {
     name: "Home",
     path: "/",
-    icon: HomeIcon,
+    icon: <HomeIcon mr={4} />,
     element: <AdminLayout children={<div>Dashboard</div>} />,
   },
   {
     name: "Criminal Information",
     path: "/criminal-information",
-    icon: DocumentIcon,
+    icon: <DocumentIcon mr={4} />,
     element: <AdminLayout children={<CriminalInformationView />} />,
   },
 ];

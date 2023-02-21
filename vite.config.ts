@@ -29,12 +29,12 @@ export default defineConfig({
     alias: [
       { find: "@", replacement: path.resolve(__dirname, "src") },
       {
-        find: "@components",
-        replacement: path.resolve(__dirname, "src", "components"),
-      },
-      {
         find: "@icons",
         replacement: path.resolve(__dirname, "src", "components", "icons"),
+      },
+      {
+        find: "@components",
+        replacement: path.resolve(__dirname, "src", "components"),
       },
       {
         find: "@layouts",

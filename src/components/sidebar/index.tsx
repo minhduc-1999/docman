@@ -130,7 +130,7 @@ const MobileNav = ({ onOpen, ...rest }: MobileProps) => {
         variant="outline"
         onClick={onOpen}
         aria-label="open menu"
-        icon={MenuIcon}
+        icon={<MenuIcon />}
       />
 
       <Text fontSize="2xl" ml="8" fontFamily="monospace" fontWeight="bold">

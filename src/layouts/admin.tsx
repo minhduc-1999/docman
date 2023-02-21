@@ -12,9 +12,10 @@ export default function AdminLayout(props: AdminLayoutProps) {
       <Box
         ml={{ base: 0, md: 60 }}
         p="4"
-        border="1px"
-        borderColor="red.200"
         flexGrow={1}
+        padding={0}
+        borderLeftColor="gray.400"
+        borderLeftWidth={1}
       >
         {props.children}
       </Box>
