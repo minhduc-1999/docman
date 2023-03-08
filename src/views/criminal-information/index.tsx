@@ -1,15 +1,19 @@
 import { AddIcon } from "@icons";
 import CriminalInformationTable from "@/views/criminal-information/components/criminal-information";
-import { HStack, IconButton } from "@chakra-ui/react";
+import { HStack, IconButton, useDisclosure } from "@chakra-ui/react";
 import { useState } from "react";
 import { Information } from "@/models/information";
 import { createInformation } from "@/mock/information";
+import { CreateInformationModal } from "./components/create-information-modal";
 
 const CriminalInformationView = () => {
   const [informationList, setInformationList] = useState<Information[]>([]);
+  const { isOpen, onClose, onOpen } = useDisclosure();
+
   const onAddNewInformation = () => {
     createInformation().then((doc) => {
       setInformationList([...informationList, doc]);
+      onOpen();
     });
   };
   return (
@@ -24,6 +28,7 @@ const CriminalInformationView = () => {
         />
       </HStack>
       <CriminalInformationTable informationList={informationList} />
+      <CreateInformationModal isOpen={isOpen} onClose={onClose} />
     </>
   );
 };

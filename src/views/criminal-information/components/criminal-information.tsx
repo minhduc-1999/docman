@@ -30,17 +30,20 @@ const CriminalInformationTable = ({ informationList }: Props) => {
         </Thead>
         <Tbody>
           {informationList.map(
-            ({
-              id,
-              acceptanceNo,
-              acceptedAt,
-              plaintiff,
-              defendant,
-              description,
-              law,
-            }) => {
+            (
+              {
+                id,
+                acceptanceNo,
+                acceptedAt,
+                plaintiff,
+                defendant,
+                description,
+                law,
+              },
+              index
+            ) => {
               return (
-                <Tr>
+                <Tr key={index}>
                   <Td>{id}</Td>
                   <Td>{acceptanceNo}</Td>
                   <Td>{acceptedAt.toDateString()}</Td>
