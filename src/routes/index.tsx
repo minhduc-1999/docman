@@ -13,13 +13,13 @@ export type Route = {
 
 export const routes: Array<Route> = [
   {
-    name: "Home",
+    name: "Trang chủ",
     path: "/",
     icon: <HomeIcon mr={4} />,
     element: <AdminLayout children={<div>Dashboard</div>} />,
   },
   {
-    name: "Criminal Information",
+    name: "Tin báo",
     path: "/criminal-information",
     icon: <DocumentIcon mr={4} />,
     element: <AdminLayout children={<CriminalInformationView />} />,

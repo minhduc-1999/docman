@@ -7,32 +7,51 @@ import {
   Td,
   TableContainer,
 } from "@chakra-ui/react";
+import { Information } from "@/models/information";
 
-const CriminalInformationTable = () => {
+type Props = {
+  informationList: Information[];
+};
+
+const CriminalInformationTable = ({ informationList }: Props) => {
   return (
     <TableContainer>
       <Table size={"sm"} variant="simple">
         <Thead>
           <Tr>
-            <Th>No</Th>
-            <Th>ReplyNo</Th>
-            <Th>ReplyAt</Th>
-            <Th>Plaintiff</Th>
-            <Th>Defendant</Th>
-            <Th>Description</Th>
-            <Th>Law</Th>
+            <Th>Số thứ tự</Th>
+            <Th>Số thụ lý</Th>
+            <Th>Ngày thụ lý</Th>
+            <Th>Nguyên đơn</Th>
+            <Th>Bị đơn</Th>
+            <Th>Nội dung</Th>
+            <Th>Điều luật</Th>
           </Tr>
         </Thead>
         <Tbody>
-          <Tr>
-            <Td>Data</Td>
-            <Td>Data</Td>
-            <Td>Data</Td>
-            <Td>Data</Td>
-            <Td>Data</Td>
-            <Td>Data</Td>
-            <Td>Data</Td>
-          </Tr>
+          {informationList.map(
+            ({
+              id,
+              acceptanceNo,
+              acceptedAt,
+              plaintiff,
+              defendant,
+              description,
+              law,
+            }) => {
+              return (
+                <Tr>
+                  <Td>{id}</Td>
+                  <Td>{acceptanceNo}</Td>
+                  <Td>{acceptedAt.toDateString()}</Td>
+                  <Td>{plaintiff}</Td>
+                  <Td>{defendant}</Td>
+                  <Td>{description}</Td>
+                  <Td>{law}</Td>
+                </Tr>
+              );
+            }
+          )}
         </Tbody>
       </Table>
     </TableContainer>

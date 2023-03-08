@@ -27,7 +27,10 @@ export default defineConfig({
   },
   resolve: {
     alias: [
-      { find: "@", replacement: path.resolve(__dirname, "src") },
+      {
+        find: "@models",
+        replacement: path.resolve(__dirname, "src", "models"),
+      },
       {
         find: "@icons",
         replacement: path.resolve(__dirname, "src", "components", "icons"),
@@ -40,6 +43,7 @@ export default defineConfig({
         find: "@layouts",
         replacement: path.resolve(__dirname, "src", "layouts"),
       },
+      { find: "@", replacement: path.resolve(__dirname, "src") },
     ],
   },
 });
