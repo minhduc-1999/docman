@@ -4,7 +4,7 @@ import { HStack, IconButton, useDisclosure } from "@chakra-ui/react";
 import { useState } from "react";
 import { Information } from "@/models/information";
 import { createInformation } from "@/mock/information";
-import { CreateInformationModal } from "./components/create-information-modal";
+import { InformationDetail } from "./components/create-information-modal";
 
 const CriminalInformationView = () => {
   const [informationList, setInformationList] = useState<Information[]>([]);
@@ -28,7 +28,7 @@ const CriminalInformationView = () => {
         />
       </HStack>
       <CriminalInformationTable informationList={informationList} />
-      <CreateInformationModal isOpen={isOpen} onClose={onClose} />
+      <InformationDetail isOpen={isOpen} onClose={onClose} />
     </>
   );
 };

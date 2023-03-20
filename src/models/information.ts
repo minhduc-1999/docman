@@ -1,6 +1,7 @@
 import { Entity } from "./base/entity";
 
 export enum InformationStatus {
+  None,
   Cessation,
   Prosecution,
   NonProsecution,
@@ -10,17 +11,17 @@ export class ProcuracyInformation {
   procurator: string;
   designationNo: string;
   designatedAt: Date;
-  additionalEvidenceRequirement: string;
-  nonProsecutionDecision: string;
-  cessationDecision: string;
+  additionalEvidenceRequirement?: string;
+  nonProsecutionDecision?: string;
+  cessationDecision?: string;
 
   constructor(
     procurator: string,
     designationNo: string,
     designatedAt: Date,
-    additionalEvidenceRequirement: string,
-    nonProsecutionDecision: string,
-    cessationDecision: string
+    additionalEvidenceRequirement?: string,
+    nonProsecutionDecision?: string,
+    cessationDecision?: string
   ) {
     this.procurator = procurator;
     this.designationNo = designationNo;
@@ -35,25 +36,25 @@ export class InvestigationBodyInformation {
   investigator: string;
   designationNo: string;
   designatedAt: Date;
-  status: InformationStatus;
-  handlingNo: string;
-  handledAt: Date;
-  transferredAt: Date;
-  extendedAt: Date;
-  recoveredAt: Date;
-  canceledAt: Date;
+  status?: InformationStatus;
+  handlingNo?: string;
+  handledAt?: Date;
+  transferredAt?: Date;
+  extendedAt?: Date;
+  recoveredAt?: Date;
+  canceledAt?: Date;
 
   constructor(
     investigator: string,
     designationNo: string,
     designatedAt: Date,
-    status: InformationStatus,
-    handlingNo: string,
-    handledAt: Date,
-    transferredAt: Date,
-    extendedAt: Date,
-    recoveredAt: Date,
-    canceledAt: Date
+    status?: InformationStatus,
+    handledAt?: Date,
+    transferredAt?: Date,
+    handlingNo?: string,
+    extendedAt?: Date,
+    recoveredAt?: Date,
+    canceledAt?: Date
   ) {
     this.investigator = investigator;
     this.designationNo = designationNo;
@@ -70,26 +71,26 @@ export class InvestigationBodyInformation {
 
 export class Information extends Entity {
   acceptanceNo: string;
-  acceptedAt: Date;
+  acceptedAt?: Date;
   plaintiff: string;
   defendant: string;
-  description: string;
-  law: string;
+  description?: string;
+  law?: string;
 
-  investigationInformation: InvestigationBodyInformation;
+  investigationInformation?: InvestigationBodyInformation;
 
-  procuracyInformation: ProcuracyInformation;
+  procuracyInformation?: ProcuracyInformation;
 
   constructor(
     id: string,
     acceptanceNo: string,
-    acceptedAt: Date,
     plaintiff: string,
     defendant: string,
-    description: string,
-    law: string,
-    investigationInformation: InvestigationBodyInformation,
-    procuracyInformation: ProcuracyInformation
+    law?: string,
+    acceptedAt?: Date,
+    description?: string,
+    investigationInformation?: InvestigationBodyInformation,
+    procuracyInformation?: ProcuracyInformation
   ) {
     super(id);
     this.acceptanceNo = acceptanceNo;
