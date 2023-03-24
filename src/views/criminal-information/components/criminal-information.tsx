@@ -46,7 +46,7 @@ const CriminalInformationTable = ({ informationList }: Props) => {
                 <Tr key={index}>
                   <Td>{id}</Td>
                   <Td>{acceptanceNo}</Td>
-                  <Td>{acceptedAt.toDateString()}</Td>
+                  <Td>{acceptedAt?.toDateString()}</Td>
                   <Td>{plaintiff}</Td>
                   <Td>{defendant}</Td>
                   <Td>{description}</Td>

@@ -16,59 +16,92 @@ import {
   ModalOverlay,
   Radio,
   RadioGroup,
+  Switch,
   Textarea,
 } from "@chakra-ui/react";
-import React, { useReducer } from "react";
-import { SingleDatepicker } from "chakra-dayzed-datepicker";
-import { Information, InformationStatus } from "@/models/information";
+import React, { useState } from "react";
+import DatePicker from "react-datepicker";
+import { chakra } from "@chakra-ui/react";
+import "react-datepicker/dist/react-datepicker.css";
+
+const AppDatePicker = chakra(DatePicker);
+
+import {
+  Information,
+  InformationStatus,
+  InvestigationBodyInformation,
+  ProcuracyInformation,
+} from "@/models/information";
+import { addNewCriminalInformation } from "@/services/criminal-information";
+import { useAppToast } from "@/hook/toast";
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  information?: Information;
+  refeshInformationList: () => void;
 };
 
-type CreateAction = {
-  type: "create";
-  newValue: Partial<Information>;
-};
-
-type UpdateAction = {
-  type: "update";
-  updatedKey: keyof Information;
-  updatedValue: string;
-};
-
-type DeleteAction = {
-  type: "delete";
-};
-
-function reducer(
-  state: Partial<Information>,
-  action: CreateAction | UpdateAction | DeleteAction
-): Partial<Information> {
-  switch (action.type) {
-    case "create": {
-      return action.newValue;
-    }
-    case "update": {
-      return {
-        ...state,
-        [action.updatedKey]: action.updatedValue,
-      };
-    }
-    case "delete": {
-      return {};
-    }
-    default: {
-      throw new Error("Invalid action");
-    }
-  }
-}
-
-export function InformationDetail({ isOpen, onClose, information }: Props) {
+export function CreateInformationModal({
+  isOpen,
+  onClose,
+  refeshInformationList,
+}: Props) {
   const initialRef = React.useRef(null);
   const finalRef = React.useRef(null);
-  const [informationState, dispatch] = useReducer(reducer, information ?? {});
+  const [haveInvestigation, setHaveInvestigation] = useState(false);
+  const [haveProsecution, setHaveProsecution] = useState(false);
+
+  const [acceptanceNo, setAcceptanceNo] = useState("");
+  const [acceptedAt, setAcceptedAt] = useState<Date>(new Date());
+  const [plaintiff, setPlaintiff] = useState("");
+  const [defendant, setDefendant] = useState("");
+  const [law, setLaw] = useState("");
+  const [description, setDescription] = useState("");
+  const [investigator, setInvestigator] = useState("");
+  const [invDesignationNo, setInvDesignationNo] = useState("");
+  const [invDesignatedAt, setInvDesignatedAt] = useState<Date>(new Date());
+  const [invStatus, setInvStatus] = useState<InformationStatus | null>(null);
+  const [invHandlingNo, setInvHandlingNo] = useState("");
+  const [invHandledAt, setInvHandledAt] = useState<Date | null>(null);
+  const [invTransferredAt, setInvTransferredAt] = useState<Date | null>(null);
+  const [invExtendedAt, setInvExtendedAt] = useState<Date | null>(null);
+  const [invRecoveredAt, setInvRecoveredAt] = useState<Date | null>(null);
+  const [invCanceledAt, setInvCanceledAt] = useState<Date | null>(null);
+  const [procurator, setProcurator] = useState("");
+  const [proDesignationNo, setProDesignationNo] = useState("");
+  const [proDesignatedAt, setProDesignatedAt] = useState<Date>(new Date());
+  const [
+    proAdditionalEvidenceRequirement,
+    setProAdditionalEvidenceRequirement,
+  ] = useState("");
+  const [proNonProsecutionDecision, setProNonProsecutionDecision] =
+    useState("");
+  const [proCessationDecision, setProCessationDecision] = useState("");
+  const { showSuccessToast, showFailToast } = useAppToast();
+
+  const clear = () => {
+    setHaveInvestigation(false);
+    setHaveProsecution(false);
+
+    setAcceptanceNo("");
+    setPlaintiff("");
+    setDefendant("");
+    setLaw("");
+    setDescription("");
+    setInvestigator("");
+    setInvDesignationNo("");
+    setInvStatus(null);
+    setInvHandlingNo("");
+    setInvTransferredAt(null);
+    setInvExtendedAt(null);
+    setInvRecoveredAt(null);
+    setInvCanceledAt(null);
+    setProcurator("");
+    setProDesignationNo("");
+    setProAdditionalEvidenceRequirement("");
+    setProNonProsecutionDecision("");
+    setProCessationDecision("");
+    setInvHandledAt(null);
+  };
 
   return (
     <Modal
@@ -95,59 +128,68 @@ export function InformationDetail({ isOpen, onClose, information }: Props) {
               <Box pb={4} mt={2}>
                 <Grid templateColumns="repeat(2, 1fr)" columnGap={4} rowGap={2}>
                   <GridItem>
-                    <FormControl>
+                    <FormControl isRequired isInvalid={acceptanceNo === ""}>
                       <FormLabel fontSize={"sm"}>Số thụ lý</FormLabel>
                       <Input
                         ref={initialRef}
-                        value={informationState.acceptanceNo}
+                        value={acceptanceNo}
                         onChange={(event) =>
-                          dispatch({
-                            type: "update",
-                            updatedKey: "acceptanceNo",
-                            updatedValue: event.target.value,
-                          })
+                          setAcceptanceNo(event.target.value)
                         }
                       />
                     </FormControl>
                   </GridItem>
                   <GridItem>
-                    <FormControl>
+                    <FormControl isRequired>
                       <FormLabel fontSize={"sm"}>Ngày thụ lý</FormLabel>
-                      <SingleDatepicker
+                      <AppDatePicker
+                        border="1px solid"
+                        borderRadius={3}
+                        borderColor={"gray.200"}
                         name="date-input"
-                        date={informationState.acceptedAt}
-                        onDateChange={(date) => {
-                          dispatch({
-                            type: "update",
-                            updatedKey: "acceptedAt",
-                            updatedValue: date.toString(),
-                          });
+                        selected={acceptedAt}
+                        onChange={(date: Date) => {
+                          setAcceptedAt(date);
                         }}
                       />
                     </FormControl>
                   </GridItem>
                   <GridItem colSpan={2}>
-                    <FormControl>
+                    <FormControl isRequired isInvalid={plaintiff === ""}>
                       <FormLabel fontSize={"sm"}>Nguyên đơn</FormLabel>
-                      <Input value={informationState.plaintiff} />
+                      <Input
+                        value={plaintiff}
+                        onChange={(event) => {
+                          setPlaintiff(event.target.value);
+                        }}
+                      />
                     </FormControl>
                   </GridItem>
                   <GridItem colSpan={2}>
-                    <FormControl>
+                    <FormControl isRequired isInvalid={defendant === ""}>
                       <FormLabel fontSize={"sm"}>Bị đơn</FormLabel>
-                      <Input value={informationState.defendant} />
+                      <Input
+                        value={defendant}
+                        onChange={(event) => setDefendant(event.target.value)}
+                      />
                     </FormControl>
                   </GridItem>
                   <GridItem colSpan={2}>
                     <FormControl>
                       <FormLabel fontSize={"sm"}>Điều luật</FormLabel>
-                      <Input value={informationState.law} />
+                      <Input
+                        value={law}
+                        onChange={(event) => setLaw(event.target.value)}
+                      />
                     </FormControl>
                   </GridItem>
                   <GridItem colSpan={2}>
                     <FormControl>
                       <FormLabel fontSize={"sm"}>Nội dung</FormLabel>
-                      <Textarea value={informationState.description} />
+                      <Textarea
+                        value={description}
+                        onChange={(event) => setDescription(event.target.value)}
+                      />
                     </FormControl>
                   </GridItem>
                 </Grid>
@@ -156,58 +198,73 @@ export function InformationDetail({ isOpen, onClose, information }: Props) {
 
             <Box>
               <h2>
-                <Box>
+                <Flex justifyContent={"space-between"}>
                   <Box as="span" fontWeight={"600"} flex="1" textAlign="left">
                     Cơ quan điều tra
                   </Box>
-                </Box>
+                  <Switch
+                    isChecked={haveInvestigation}
+                    onChange={() => setHaveInvestigation(!haveInvestigation)}
+                  />
+                </Flex>
               </h2>
 
               <Box pb={4} mt={2}>
                 <Grid templateColumns="repeat(2, 1fr)" columnGap={4} rowGap={2}>
                   <GridItem colSpan={2}>
-                    <FormControl>
+                    <FormControl
+                      isDisabled={!haveInvestigation}
+                      isRequired={haveInvestigation}
+                      isInvalid={haveInvestigation && investigator === ""}
+                    >
                       <FormLabel fontSize={"sm"}>Điều tra viên</FormLabel>
                       <Input
-                        value={
-                          informationState.investigationInformation
-                            ?.investigator
+                        value={investigator}
+                        onChange={(event) =>
+                          setInvestigator(event.target.value)
                         }
                       />
                     </FormControl>
                   </GridItem>
                   <GridItem>
-                    <FormControl>
+                    <FormControl
+                      isDisabled={!haveInvestigation}
+                      isRequired={haveInvestigation}
+                      isInvalid={haveInvestigation && invDesignationNo === ""}
+                    >
                       <FormLabel fontSize={"sm"}>Số phân công</FormLabel>
                       <Input
-                        value={
-                          informationState.investigationInformation
-                            ?.designationNo
+                        value={invDesignationNo}
+                        onChange={(event) =>
+                          setInvDesignationNo(event.target.value)
                         }
                       />
                     </FormControl>
                   </GridItem>
                   <GridItem>
-                    <FormControl>
+                    <FormControl
+                      isDisabled={!haveInvestigation}
+                      isRequired={haveInvestigation}
+                    >
                       <FormLabel fontSize={"sm"}>Ngày phân công</FormLabel>
-                      <SingleDatepicker
+                      <AppDatePicker
+                        disabled={!haveInvestigation}
                         name="date-input"
-                        date={
-                          informationState.investigationInformation
-                            ?.designatedAt
-                        }
-                        onDateChange={(date) => {
-                          console.log("date change", date);
+                        selected={invDesignatedAt}
+                        onChange={(date: Date) => {
+                          setInvDesignatedAt(date);
                         }}
                       />
                     </FormControl>
                   </GridItem>
                   <GridItem colSpan={2}>
-                    <FormControl>
+                    <FormControl isDisabled={!haveInvestigation}>
                       <FormLabel fontSize={"sm"}>Trạng thái</FormLabel>
                       <RadioGroup
-                      //   onChange={setValue}
-                      //   value={value}
+                        onChange={(value) => {
+                          setInvStatus(parseInt(value) as InformationStatus);
+                        }}
+                        value={invStatus?.toString()}
                       >
                         <Flex direction="row" justifyContent={"space-between"}>
                           <Radio value={InformationStatus.None.toString()}>
@@ -231,82 +288,77 @@ export function InformationDetail({ isOpen, onClose, information }: Props) {
                     </FormControl>
                   </GridItem>
                   <GridItem>
-                    <FormControl>
+                    <FormControl isDisabled={!haveInvestigation}>
                       <FormLabel fontSize={"sm"}>Số</FormLabel>
                       <Input
-                        value={
-                          informationState.investigationInformation?.handlingNo
+                        value={invHandlingNo}
+                        onChange={(event) =>
+                          setInvHandlingNo(event.target.value)
                         }
                       />
                     </FormControl>
                   </GridItem>
                   <GridItem>
-                    <FormControl>
+                    <FormControl isDisabled={!haveInvestigation}>
                       <FormLabel fontSize={"sm"}>Ngày</FormLabel>
-                      <SingleDatepicker
+                      <AppDatePicker
+                        disabled={!haveInvestigation}
                         name="date-input"
-                        date={
-                          informationState.investigationInformation?.handledAt
-                        }
-                        onDateChange={(date) => {
-                          console.log("date change", date);
+                        selected={invHandledAt}
+                        onChange={(date: Date | null) => {
+                          setInvHandledAt(date);
                         }}
                       />
                     </FormControl>
                   </GridItem>
                   <GridItem>
-                    <FormControl>
+                    <FormControl isDisabled={!haveInvestigation}>
                       <FormLabel fontSize={"sm"}>Chuyển</FormLabel>
-                      <SingleDatepicker
+                      <AppDatePicker
+                        disabled={!haveInvestigation}
                         name="date-input"
-                        date={
-                          informationState.investigationInformation
-                            ?.transferredAt
-                        }
-                        onDateChange={(date) => {
-                          console.log("date change", date);
+                        selected={invTransferredAt}
+                        onChange={(date: Date | null) => {
+                          setInvTransferredAt(date);
                         }}
                       />
                     </FormControl>
                   </GridItem>
                   <GridItem>
-                    <FormControl>
+                    <FormControl isDisabled={!haveInvestigation}>
                       <FormLabel fontSize={"sm"}>Gia hạn</FormLabel>
-                      <SingleDatepicker
+                      <AppDatePicker
+                        disabled={!haveInvestigation}
                         name="date-input"
-                        date={
-                          informationState.investigationInformation?.extendedAt
-                        }
-                        onDateChange={(date) => {
-                          console.log("date change", date);
+                        selected={invExtendedAt}
+                        onChange={(date: Date | null) => {
+                          setInvExtendedAt(date);
                         }}
                       />
                     </FormControl>
                   </GridItem>
                   <GridItem>
-                    <FormControl>
+                    <FormControl isDisabled={!haveInvestigation}>
                       <FormLabel fontSize={"sm"}>Phục hồi</FormLabel>
-                      <SingleDatepicker
+                      <AppDatePicker
+                        disabled={!haveInvestigation}
                         name="date-input"
-                        date={
-                          informationState.investigationInformation?.recoveredAt
-                        }
-                        onDateChange={(date) => {
-                          console.log("date change", date);
+                        selected={invRecoveredAt}
+                        onChange={(date: Date | null) => {
+                          setInvRecoveredAt(date);
                         }}
                       />
                     </FormControl>
                   </GridItem>
                   <GridItem>
-                    <FormControl>
+                    <FormControl isDisabled={!haveInvestigation}>
                       <FormLabel fontSize={"sm"}>Hủy phân công</FormLabel>
-                      <SingleDatepicker
+                      <AppDatePicker
+                        disabled={!haveInvestigation}
                         name="date-input"
-                        date={
-                          informationState.investigationInformation?.canceledAt
-                        }
-                        onDateChange={(date) => {
-                          console.log("date change", date);
+                        selected={invCanceledAt}
+                        onChange={(date: Date | null) => {
+                          setInvCanceledAt(date);
                         }}
                       />
                     </FormControl>
@@ -317,79 +369,95 @@ export function InformationDetail({ isOpen, onClose, information }: Props) {
 
             <Box>
               <h2>
-                <Box>
-                  <Box as="span" flex="1" fontWeight={"600"} textAlign="left">
+                <Flex justifyContent={"space-between"}>
+                  <Box as="span" fontWeight={"600"} flex="1" textAlign="left">
                     Viện kiểm sát
                   </Box>
-                </Box>
+                  <Switch
+                    isChecked={haveProsecution}
+                    onChange={() => setHaveProsecution(!haveProsecution)}
+                  />
+                </Flex>
               </h2>
               <Box pb={4} mt={2}>
                 <Grid templateColumns="repeat(2, 1fr)" columnGap={4} rowGap={2}>
                   <GridItem colSpan={2}>
-                    <FormControl>
+                    <FormControl
+                      isDisabled={!haveProsecution}
+                      isRequired={haveProsecution}
+                      isInvalid={haveProsecution && procurator === ""}
+                    >
                       <FormLabel fontSize={"sm"}>KSV thụ lý</FormLabel>
                       <Input
-                        value={
-                          informationState.procuracyInformation?.procurator
-                        }
+                        value={procurator}
+                        onChange={(event) => setProcurator(event.target.value)}
                       />
                     </FormControl>
                   </GridItem>
                   <GridItem>
-                    <FormControl>
+                    <FormControl
+                      isDisabled={!haveProsecution}
+                      isRequired={haveProsecution}
+                      isInvalid={haveProsecution && proDesignationNo === ""}
+                    >
                       <FormLabel fontSize={"sm"}>Số QĐPC</FormLabel>
                       <Input
-                        value={
-                          informationState.procuracyInformation?.designationNo
+                        value={proDesignationNo}
+                        onChange={(event) =>
+                          setProDesignationNo(event.target.value)
                         }
                       />
                     </FormControl>
                   </GridItem>
                   <GridItem>
-                    <FormControl>
+                    <FormControl
+                      isDisabled={!haveProsecution}
+                      isRequired={haveProsecution}
+                    >
                       <FormLabel fontSize={"sm"}>Ngày</FormLabel>
-                      <SingleDatepicker
+                      <AppDatePicker
+                        disabled={!haveProsecution}
                         name="date-input"
-                        date={
-                          informationState.procuracyInformation?.designatedAt
-                        }
-                        onDateChange={(date) => {
-                          console.log("date change", date);
+                        selected={proDesignatedAt}
+                        onChange={(date: Date) => {
+                          setProDesignatedAt(date);
                         }}
                       />
                     </FormControl>
                   </GridItem>
                   <GridItem colSpan={2}>
-                    <FormControl>
+                    <FormControl isDisabled={!haveProsecution}>
                       <FormLabel fontSize={"sm"}>
                         Trao đổi/yêu cầu BSCC
                       </FormLabel>
                       <Textarea
-                        value={
-                          informationState.procuracyInformation
-                            ?.additionalEvidenceRequirement
+                        value={proAdditionalEvidenceRequirement}
+                        onChange={(event) =>
+                          setProAdditionalEvidenceRequirement(
+                            event.target.value
+                          )
                         }
                       />
                     </FormControl>
                   </GridItem>
                   <GridItem colSpan={2}>
-                    <FormControl>
+                    <FormControl isDisabled={!haveProsecution}>
                       <FormLabel fontSize={"sm"}>Kết luận QĐKoKT</FormLabel>
                       <Textarea
-                        value={
-                          informationState.procuracyInformation
-                            ?.nonProsecutionDecision
+                        value={proNonProsecutionDecision}
+                        onChange={(event) =>
+                          setProNonProsecutionDecision(event.target.value)
                         }
                       />
                     </FormControl>
                   </GridItem>
                   <GridItem colSpan={2}>
-                    <FormControl>
+                    <FormControl isDisabled={!haveProsecution}>
                       <FormLabel fontSize={"sm"}>Kết luận TĐC</FormLabel>
                       <Textarea
-                        value={
-                          informationState.procuracyInformation
-                            ?.cessationDecision
+                        value={proCessationDecision}
+                        onChange={(event) =>
+                          setProCessationDecision(event.target.value)
                         }
                       />
                     </FormControl>
@@ -404,11 +472,63 @@ export function InformationDetail({ isOpen, onClose, information }: Props) {
           <Button
             colorScheme="blue"
             mr={3}
+            isDisabled={
+              !acceptanceNo ||
+              !plaintiff ||
+              !defendant ||
+              (haveInvestigation && (!investigator || !invDesignationNo)) ||
+              (haveProsecution && (!procurator || !proDesignationNo))
+            }
             onClick={() => {
-              dispatch({
-                type: "create",
-                newValue: informationState,
-              });
+              let investigationInfor: InvestigationBodyInformation | null =
+                null;
+              let prosecutionInfor: ProcuracyInformation | null = null;
+              if (haveInvestigation) {
+                investigationInfor = new InvestigationBodyInformation(
+                  investigator,
+                  invDesignationNo,
+                  invDesignatedAt,
+                  invStatus,
+                  invHandledAt,
+                  invTransferredAt,
+                  invHandlingNo,
+                  invExtendedAt,
+                  invRecoveredAt,
+                  invCanceledAt
+                );
+              }
+              if (haveProsecution) {
+                prosecutionInfor = new ProcuracyInformation(
+                  procurator,
+                  proDesignationNo,
+                  proDesignatedAt,
+                  proAdditionalEvidenceRequirement,
+                  proNonProsecutionDecision,
+                  proCessationDecision
+                );
+              }
+              const infor = new Information(
+                "",
+                acceptanceNo,
+                plaintiff,
+                defendant,
+                acceptedAt,
+                law,
+                description,
+                investigationInfor,
+                prosecutionInfor
+              );
+              addNewCriminalInformation(infor)
+                .then(() => {
+                  refeshInformationList();
+                  clear();
+                  showSuccessToast("Tạo thành công");
+                  onClose();
+                })
+                .catch((err) => {
+                  console.log(err);
+                  showFailToast("Tạo thất bại");
+                });
             }}
           >
             Lưu

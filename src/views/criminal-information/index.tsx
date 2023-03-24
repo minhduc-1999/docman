@@ -1,20 +1,17 @@
 import { AddIcon } from "@icons";
 import CriminalInformationTable from "@/views/criminal-information/components/criminal-information";
-import { HStack, IconButton, useDisclosure } from "@chakra-ui/react";
+import { HStack, IconButton, useDisclosure, useToast } from "@chakra-ui/react";
 import { useState } from "react";
 import { Information } from "@/models/information";
-import { createInformation } from "@/mock/information";
-import { InformationDetail } from "./components/create-information-modal";
+import { CreateInformationModal } from "./components/create-information-modal";
+import { useAppToast } from "@/hook/toast";
 
 const CriminalInformationView = () => {
   const [informationList, setInformationList] = useState<Information[]>([]);
   const { isOpen, onClose, onOpen } = useDisclosure();
 
   const onAddNewInformation = () => {
-    createInformation().then((doc) => {
-      setInformationList([...informationList, doc]);
-      onOpen();
-    });
+    onOpen();
   };
   return (
     <>
@@ -28,7 +25,13 @@ const CriminalInformationView = () => {
         />
       </HStack>
       <CriminalInformationTable informationList={informationList} />
-      <InformationDetail isOpen={isOpen} onClose={onClose} />
+      <CreateInformationModal
+        isOpen={isOpen}
+        onClose={onClose}
+        refeshInformationList={() => {
+          console.log("refresh");
+        }}
+      />
     </>
   );
 };
