@@ -46,24 +46,24 @@ export async function addNewCriminalInformation(information: Information) {
   });
 }
 
-enum Order {
+export enum Order {
   DESC = "DESC",
   ASC = "ASC",
 }
 
-export class QueryOption {
-  offset: number = 0;
-  limit: number = 10;
-  order: Order = Order.ASC;
-}
+export type QueryOption = {
+  offset: number;
+  limit: number;
+  order?: Order;
+};
 
 export async function getInformationList(
   queryOption: QueryOption
-): Promise<Information[]> {
-  const rawList: any[] = await invoke("get_information_list", {
+): Promise<[Information[], number]> {
+  const result: [any[], number] = await invoke("get_information_list", {
     queryOpt: queryOption,
   });
-  return rawList.map((item) => {
+  const listInformation = result[0].map((item) => {
     let investigationInfor: InvestigationBodyInformation | null = null;
     let prosecutionInfor: ProcuracyInformation | null = null;
     if (item.investigator && item.inv_designation_no)
@@ -101,4 +101,5 @@ export async function getInformationList(
       item.prosecution_infor
     );
   });
+  return [listInformation, result[1]];
 }

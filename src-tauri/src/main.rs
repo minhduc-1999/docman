@@ -71,10 +71,10 @@ impl Default for InformationPageQueryOption {
 fn get_information_list<'r>(
     conn_mut: tauri::State<'r, Mutex<Connection>>,
     query_opt: InformationPageQueryOption,
-) -> Result<Vec<Information>, String> {
+) -> Result<(Vec<Information>, Option<i64>), String> {
     let conn = conn_mut.lock().expect("Fail to get connection");
     let query = "
-        SELECT *
+        SELECT *, count(*) OVER() as total
         FROM information
         ORDER BY
             created_at DESC
@@ -91,6 +91,7 @@ fn get_information_list<'r>(
         )
         .unwrap();
     let mut informations: Vec<Information> = Vec::new();
+    let mut totalItem: Option<i64> = None;
     while let Ok(State::Row) = statement.next() {
         let infor = Information {
             id: statement.read::<i64, _>("id").unwrap(),
@@ -125,8 +126,11 @@ fn get_information_list<'r>(
             deleted_at: statement.read::<i64, _>("deleted_at").ok(),
         };
         informations.push(infor);
+        if totalItem.is_none() {
+            totalItem = statement.read::<i64, _>("total").ok();
+        }
     }
-    Ok(informations)
+    Ok((informations, totalItem))
 }
 
 #[tauri::command]
