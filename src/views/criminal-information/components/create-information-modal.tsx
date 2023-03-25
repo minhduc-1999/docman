@@ -23,6 +23,9 @@ import React, { useState } from "react";
 import DatePicker from "react-datepicker";
 import { chakra } from "@chakra-ui/react";
 import "react-datepicker/dist/react-datepicker.css";
+import { registerLocale } from "react-datepicker";
+import vi from "date-fns/locale/vi";
+registerLocale("vi", vi);
 
 const AppDatePicker = chakra(DatePicker);
 
@@ -143,6 +146,8 @@ export function CreateInformationModal({
                     <FormControl isRequired>
                       <FormLabel fontSize={"sm"}>Ngày thụ lý</FormLabel>
                       <AppDatePicker
+                        dateFormat={"dd/MM/yyyy"}
+                        locale="vi"
                         border="1px solid"
                         borderRadius={3}
                         borderColor={"gray.200"}
@@ -248,6 +253,8 @@ export function CreateInformationModal({
                     >
                       <FormLabel fontSize={"sm"}>Ngày phân công</FormLabel>
                       <AppDatePicker
+                        dateFormat={"dd/MM/yyyy"}
+                        locale={"vi"}
                         disabled={!haveInvestigation}
                         name="date-input"
                         selected={invDesignatedAt}
@@ -302,6 +309,8 @@ export function CreateInformationModal({
                     <FormControl isDisabled={!haveInvestigation}>
                       <FormLabel fontSize={"sm"}>Ngày</FormLabel>
                       <AppDatePicker
+                        dateFormat={"dd/MM/yyyy"}
+                        locale={"vi"}
                         disabled={!haveInvestigation}
                         name="date-input"
                         selected={invHandledAt}
@@ -315,6 +324,8 @@ export function CreateInformationModal({
                     <FormControl isDisabled={!haveInvestigation}>
                       <FormLabel fontSize={"sm"}>Chuyển</FormLabel>
                       <AppDatePicker
+                        dateFormat={"dd/MM/yyyy"}
+                        locale={"vi"}
                         disabled={!haveInvestigation}
                         name="date-input"
                         selected={invTransferredAt}
@@ -328,6 +339,8 @@ export function CreateInformationModal({
                     <FormControl isDisabled={!haveInvestigation}>
                       <FormLabel fontSize={"sm"}>Gia hạn</FormLabel>
                       <AppDatePicker
+                        dateFormat={"dd/MM/yyyy"}
+                        locale={"vi"}
                         disabled={!haveInvestigation}
                         name="date-input"
                         selected={invExtendedAt}
@@ -341,6 +354,8 @@ export function CreateInformationModal({
                     <FormControl isDisabled={!haveInvestigation}>
                       <FormLabel fontSize={"sm"}>Phục hồi</FormLabel>
                       <AppDatePicker
+                        dateFormat={"dd/MM/yyyy"}
+                        locale={"vi"}
                         disabled={!haveInvestigation}
                         name="date-input"
                         selected={invRecoveredAt}
@@ -354,6 +369,8 @@ export function CreateInformationModal({
                     <FormControl isDisabled={!haveInvestigation}>
                       <FormLabel fontSize={"sm"}>Hủy phân công</FormLabel>
                       <AppDatePicker
+                        dateFormat={"dd/MM/yyyy"}
+                        locale={"vi"}
                         disabled={!haveInvestigation}
                         name="date-input"
                         selected={invCanceledAt}
@@ -416,7 +433,9 @@ export function CreateInformationModal({
                     >
                       <FormLabel fontSize={"sm"}>Ngày</FormLabel>
                       <AppDatePicker
+                        locale={"vi"}
                         disabled={!haveProsecution}
+                        dateFormat={"dd/MM/yyyy"}
                         name="date-input"
                         selected={proDesignatedAt}
                         onChange={(date: Date) => {

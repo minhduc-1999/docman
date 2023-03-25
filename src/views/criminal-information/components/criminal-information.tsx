@@ -8,6 +8,7 @@ import {
   TableContainer,
 } from "@chakra-ui/react";
 import { Information } from "@/models/information";
+import moment from "moment";
 
 type Props = {
   informationList: Information[];
@@ -44,9 +45,11 @@ const CriminalInformationTable = ({ informationList }: Props) => {
             ) => {
               return (
                 <Tr key={index}>
-                  <Td>{id}</Td>
+                  <Td>{index + 1}</Td>
                   <Td>{acceptanceNo}</Td>
-                  <Td>{acceptedAt?.toDateString()}</Td>
+                  <Td>
+                    {moment(acceptedAt.toISOString()).format("DD/MM/YYYY")}
+                  </Td>
                   <Td>{plaintiff}</Td>
                   <Td>{defendant}</Td>
                   <Td>{description}</Td>
