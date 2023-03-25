@@ -10,8 +10,8 @@ use std::{
 };
 
 use serde::{Deserialize, Serialize};
-use sqlite::{self, Connection, State, Value};
-
+use sqlite::{self, Connection, State, Value };
+use std::fmt;
 #[derive(Deserialize, Serialize, Debug)]
 struct Information {
     id: i64,
@@ -44,17 +44,27 @@ struct Information {
     updated_at: Option<i64>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 enum Order {
     ASC,
     DESC,
 }
 
-#[derive(Deserialize)]
+impl fmt::Display for Order {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Order::ASC => write!(f, "ASC"),
+            Order::DESC => write!(f, "DESC"),
+        }
+    }
+}
+
+#[derive(Deserialize, Debug)]
 struct InformationPageQueryOption {
     offset: i64,
     limit: i64,
     order: Order,
+    search: Option<String>,
 }
 
 impl Default for InformationPageQueryOption {
@@ -63,35 +73,69 @@ impl Default for InformationPageQueryOption {
             offset: 0,
             limit: 10,
             order: Order::DESC,
+            search: None,
         }
     }
 }
 
 #[tauri::command]
-fn get_information_list<'r>(
+fn get_new_information_list<'r>(
     conn_mut: tauri::State<'r, Mutex<Connection>>,
     query_opt: InformationPageQueryOption,
 ) -> Result<(Vec<Information>, Option<i64>), String> {
     let conn = conn_mut.lock().expect("Fail to get connection");
-    let query = "
+    let mut bindValues = vec![
+        (":offset", query_opt.offset.into()),
+        (":limit", query_opt.limit.into()),
+    ];
+    let mut query = String::from("
         SELECT *, count(*) OVER() as total
         FROM information
+        WHERE
+            inv_investigator IS NULL AND
+            inv_designation_no IS NULL AND
+            pro_procurator IS NULL AND
+            pro_designation_no IS NULL
         ORDER BY
-            created_at DESC
+            created_at ASC
         LIMIT :limit
         OFFSET :offset
-    ";
-    let mut statement = conn.prepare(query).unwrap();
-    statement
+    ");
+
+    if let Some(term) = query_opt.search {
+        query = format!("{}{}{}{}{}{}{}", "
+        SELECT *, count(*) over() as total
+        FROM information
+        WHERE 
+            inv_investigator IS NULL AND
+            inv_designation_no IS NULL AND
+            pro_procurator IS NULL AND
+            pro_designation_no IS NULL AND 
+            (acceptance_no like '%", &term[..], "%' OR
+        	plaintiff like '%" , &term[..] ,"%' OR
+        	defendant like '%" , &term[..] ,"%')
+        ORDER BY
+            created_at ASC
+        LIMIT :limit
+        OFFSET :offset
+    ");
+    }
+
+    let mut statement = conn.prepare::<&str>(&query[..]).unwrap();
+    let bind_result = statement
         .bind::<&[(_, Value)]>(
-            &[
-                (":offset", query_opt.offset.into()),
-                (":limit", query_opt.limit.into()),
-            ][..],
-        )
-        .unwrap();
+            &bindValues[..],
+        );
+    
+    if let Err(err) = bind_result {
+        println!("Fail to bind statement: {:?}", err);
+        return Err("Fail to get list information".into())
+    }
+
+    
+
     let mut informations: Vec<Information> = Vec::new();
-    let mut totalItem: Option<i64> = None;
+    let mut total_item: Option<i64> = None;
     while let Ok(State::Row) = statement.next() {
         let infor = Information {
             id: statement.read::<i64, _>("id").unwrap(),
@@ -126,11 +170,107 @@ fn get_information_list<'r>(
             deleted_at: statement.read::<i64, _>("deleted_at").ok(),
         };
         informations.push(infor);
-        if totalItem.is_none() {
-            totalItem = statement.read::<i64, _>("total").ok();
+        if total_item.is_none() {
+            total_item = statement.read::<i64, _>("total").ok();
         }
     }
-    Ok((informations, totalItem))
+    Ok((informations, total_item))
+}
+
+
+
+#[tauri::command]
+fn get_information_list<'r>(
+    conn_mut: tauri::State<'r, Mutex<Connection>>,
+    query_opt: InformationPageQueryOption,
+) -> Result<(Vec<Information>, Option<i64>), String> {
+    let conn = conn_mut.lock().expect("Fail to get connection");
+    let mut bindValues = vec![
+        (":offset", query_opt.offset.into()),
+        (":limit", query_opt.limit.into()),
+    ];
+    let mut query = String::from("
+        SELECT *, count(*) OVER() as total
+        FROM information
+        ORDER BY
+            created_at ASC
+        LIMIT :limit
+        OFFSET :offset
+    ");
+
+    if let Some(term) = query_opt.search {
+        query = format!("{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}", "
+        SELECT *, count(*) over() as total
+        FROM information
+        WHERE 
+        	acceptance_no like '%", &term[..], "%' OR
+        	plaintiff like '%" , &term[..] ,"%' OR
+        	defendant like '%" , &term[..] ,"%' OR
+        	inv_investigator like '%" , &term[..] ,"%' OR
+        	pro_procurator like '%" , &term[..] ,"%' OR
+        	inv_designation_no like '%" , &term[..] ,"%' OR
+        	pro_designation_no like '%" , &term[..] ,"%'
+        ORDER BY
+            created_at ASC
+        LIMIT :limit
+        OFFSET :offset
+    ");
+    }
+
+    let mut statement = conn.prepare::<&str>(&query[..]).unwrap();
+    let bind_result = statement
+        .bind::<&[(_, Value)]>(
+            &bindValues[..],
+        );
+    
+    if let Err(err) = bind_result {
+        println!("Fail to bind statement: {:?}", err);
+        return Err("Fail to get list information".into())
+    }
+
+    
+
+    let mut informations: Vec<Information> = Vec::new();
+    let mut total_item: Option<i64> = None;
+    while let Ok(State::Row) = statement.next() {
+        let infor = Information {
+            id: statement.read::<i64, _>("id").unwrap(),
+            acceptance_no: statement.read::<String, _>("acceptance_no").unwrap(),
+            accepted_at: statement.read::<i64, _>("accepted_at").unwrap(),
+            plaintiff: statement.read::<String, _>("plaintiff").unwrap(),
+            defendant: statement.read::<String, _>("defendant").unwrap(),
+            description: statement.read::<String, _>("description").ok(),
+            law: statement.read::<String, _>("law").ok(),
+            inv_investigator: statement.read::<String, _>("inv_investigator").ok(),
+            inv_designated_at: statement.read::<i64, _>("inv_designated_at").ok(),
+            inv_designation_no: statement.read::<String, _>("inv_designation_no").ok(),
+            inv_status: statement.read::<i64, _>("inv_status").ok(),
+            inv_handled_at: statement.read::<i64, _>("inv_handled_at").ok(),
+            inv_handling_no: statement.read::<String, _>("inv_handling_no").ok(),
+            inv_transferred_at: statement.read::<i64, _>("inv_transferred_at").ok(),
+            inv_canceled_at: statement.read::<i64, _>("inv_canceled_at").ok(),
+            inv_recovered_at: statement.read::<i64, _>("inv_recovered_at").ok(),
+            inv_extended_at: statement.read::<i64, _>("inv_extended_at").ok(),
+            pro_procurator: statement.read::<String, _>("pro_procurator").ok(),
+            pro_designated_at: statement.read::<i64, _>("pro_designated_at").ok(),
+            pro_designation_no: statement.read::<String, _>("pro_designation_no").ok(),
+            pro_additional_evidence_requirement: statement
+                .read::<String, _>("pro_additional_evidence_requirement")
+                .ok(),
+            pro_cessation_decision: statement.read::<String, _>("pro_cessation_decision").ok(),
+            pro_non_prosecution_decision: statement
+                .read::<String, _>("pro_non_prosecution_decision")
+                .ok(),
+            created_at: statement.read::<i64, _>("created_at").ok(),
+            updated_at: statement.read::<i64, _>("updated_at").ok(),
+            deleted_at: statement.read::<i64, _>("deleted_at").ok(),
+        };
+        informations.push(infor);
+        if total_item.is_none() {
+            total_item = statement.read::<i64, _>("total").ok();
+        }
+    }
+    Ok((informations, total_item))
 }
 
 #[tauri::command]
@@ -368,7 +508,11 @@ fn main() {
     conn_mut.lock().unwrap().execute(query).unwrap();
     tauri::Builder::default()
         .manage(conn_mut)
-        .invoke_handler(tauri::generate_handler![create_information, get_information_list])
+        .invoke_handler(tauri::generate_handler![
+            create_information,
+            get_information_list,
+            get_new_information_list
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -7,6 +7,8 @@ import {
   FiPlus,
   FiChevronLeft,
   FiChevronRight,
+  FiSearch,
+  FiChevronDown,
 } from "react-icons/fi";
 
 export const createIcon = (iconType: IconType) => {
@@ -32,3 +34,5 @@ export const MenuIcon = createIcon(FiMenu);
 export const AddIcon = createIcon(FiPlus);
 export const ChevronLeftIcon = createIcon(FiChevronLeft);
 export const ChevronRightIcon = createIcon(FiChevronRight);
+export const SearchIcon = createIcon(FiSearch);
+export const ChevronDownIcon = createIcon(FiChevronDown);

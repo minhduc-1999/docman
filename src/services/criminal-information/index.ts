@@ -54,7 +54,8 @@ export enum Order {
 export type QueryOption = {
   offset: number;
   limit: number;
-  order?: Order;
+  order: Order;
+  search: string | null;
 };
 
 export async function getInformationList(
@@ -97,8 +98,56 @@ export async function getInformationList(
       new Date(item.accepted_at),
       item.law,
       item.description,
-      item.investigation_infor,
-      item.prosecution_infor
+      investigationInfor,
+      prosecutionInfor
+    );
+  });
+  return [listInformation, result[1]];
+}
+
+export async function getNewInformationList(
+  queryOption: QueryOption
+): Promise<[Information[], number]> {
+  const result: [any[], number] = await invoke("get_new_information_list", {
+    queryOpt: queryOption,
+  });
+  console.log(result);
+  const listInformation = result[0].map((item) => {
+    let investigationInfor: InvestigationBodyInformation | null = null;
+    let prosecutionInfor: ProcuracyInformation | null = null;
+    if (item.investigator && item.inv_designation_no)
+      investigationInfor = new InvestigationBodyInformation(
+        item.investigator,
+        item.inv_designation_no,
+        new Date(item.inv_designated_at),
+        item.inv_status,
+        item.inv_handled_at && new Date(item.inv_handled_at),
+        item.inv_transferred_at && new Date(item.inv_transferred_at),
+        item.inv_handling_no,
+        item.inv_extended_at && new Date(item.inv_extended_at),
+        item.inv_recovered_at && new Date(item.inv_recovered_at),
+        item.inv_canceled_at && new Date(item.inv_canceled_at)
+      );
+    if (item.procurator && item.pro_designation_no)
+      prosecutionInfor = new ProcuracyInformation(
+        item.procurator,
+        item.pro_designation_no,
+        new Date(item.pro_designated_at),
+        item.pro_additional_evidence_requirement,
+        item.pro_non_prosecution_decision,
+        item.pro_cessation_decision
+      );
+
+    return new Information(
+      item.id,
+      item.acceptance_no,
+      item.plaintiff,
+      item.defendant,
+      new Date(item.accepted_at),
+      item.law,
+      item.description,
+      investigationInfor,
+      prosecutionInfor
     );
   });
   return [listInformation, result[1]];
