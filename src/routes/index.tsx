@@ -12,15 +12,15 @@ export type Route = {
 };
 
 export const routes: Array<Route> = [
-  {
-    name: "Trang chủ",
-    path: "/",
-    icon: <HomeIcon mr={4} />,
-    element: <AdminLayout children={<div>Dashboard</div>} />,
-  },
+  // {
+  //   name: "Trang chủ",
+  //   path: "/",
+  //   icon: <HomeIcon mr={4} />,
+  //   element: <AdminLayout children={<div>Dashboard</div>} />,
+  // },
   {
     name: "Tin báo",
-    path: "/criminal-information",
+    path: "/",
     icon: <DocumentIcon mr={4} />,
     element: <AdminLayout children={<CriminalInformationView />} />,
   },
