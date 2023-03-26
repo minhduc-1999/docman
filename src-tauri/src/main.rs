@@ -470,6 +470,181 @@ fn create_information(
     }
 }
 
+#[tauri::command]
+fn update_information(
+    conn_mut: tauri::State<Mutex<Connection>>,
+    information: Information,
+) -> Result<(), String> {
+    let conn = conn_mut.lock().unwrap();
+    print!("update {:?}", information);
+    let query = "
+        UPDATE information
+        SET
+            acceptance_no = :acceptance_no,
+            accepted_at = :accepted_at,
+            plaintiff = :plaintiff,
+            defendant = :defendant,
+            description = :description,
+            law = :law,
+            inv_investigator = :inv_investigator,
+            inv_designation_no = :inv_designation_no,
+            inv_designated_at = :inv_designated_at,
+            inv_status=  :inv_status,
+            inv_handling_no = :inv_handling_no,
+            inv_handled_at = :inv_handled_at,
+            inv_transferred_at = :inv_transferred_at,
+            inv_extended_at = :inv_extended_at,
+            inv_recovered_at = :inv_recovered_at,
+            inv_canceled_at = :inv_canceled_at,
+            pro_procurator = :pro_procurator,
+            pro_designation_no = :pro_designation_no,
+            pro_designated_at = :pro_designated_at,
+            pro_additional_evidence_requirement = :pro_additional_evidence_requirement,
+            pro_non_prosecution_decision = :pro_non_prosecution_decision,
+            pro_cessation_decision = :pro_cessation_decision,
+            updated_at = :updated_at
+        WHERE
+            id = :id
+        ";
+
+    let mut statement = conn.prepare(query).unwrap();
+    statement
+        .bind::<&[(_, Value)]>(
+            &[
+                (":id", information.id.into()),
+                (":acceptance_no", information.acceptance_no.into()),
+                (":accepted_at", information.accepted_at.to_string().into()),
+                (":plaintiff", information.plaintiff.into()),
+                (":defendant", information.defendant.into()),
+                (
+                    ":description",
+                    information
+                        .description
+                        .map_or(Value::from(()), |value| value.into()),
+                ),
+                (
+                    ":law",
+                    information
+                        .law
+                        .map_or(Value::from(()), |value| value.into()),
+                ),
+                (
+                    ":inv_investigator",
+                    information
+                        .inv_investigator
+                        .map_or(Value::from(()), |value| value.into()),
+                ),
+                (
+                    ":inv_designation_no",
+                    information
+                        .inv_designation_no
+                        .map_or(Value::from(()), |value| value.into()),
+                ),
+                (
+                    ":inv_designated_at",
+                    information
+                        .inv_designated_at
+                        .map_or(Value::from(()), |value| value.into()),
+                ),
+                (
+                    ":inv_status",
+                    information
+                        .inv_status
+                        .map_or(Value::from(()), |value| value.into()),
+                ),
+                (
+                    ":inv_handling_no",
+                    information
+                        .inv_handling_no
+                        .map_or(Value::from(()), |value| value.into()),
+                ),
+                (
+                    ":inv_handled_at",
+                    information
+                        .inv_handled_at
+                        .map_or(Value::from(()), |value| value.into()),
+                ),
+                (
+                    ":inv_transferred_at",
+                    information
+                        .inv_transferred_at
+                        .map_or(Value::from(()), |value| value.into()),
+                ),
+                (
+                    ":inv_extended_at",
+                    information
+                        .inv_extended_at
+                        .map_or(Value::from(()), |value| value.into()),
+                ),
+                (
+                    ":inv_recovered_at",
+                    information
+                        .inv_recovered_at
+                        .map_or(Value::from(()), |value| value.into()),
+                ),
+                (
+                    ":inv_canceled_at",
+                    information
+                        .inv_canceled_at
+                        .map_or(Value::from(()), |value| value.into()),
+                ),
+                (
+                    ":pro_procurator",
+                    information
+                        .pro_procurator
+                        .map_or(Value::from(()), |value| value.into()),
+                ),
+                (
+                    ":pro_designation_no",
+                    information
+                        .pro_designation_no
+                        .map_or(Value::from(()), |value| value.into()),
+                ),
+                (
+                    ":pro_designated_at",
+                    information
+                        .pro_designated_at
+                        .map_or(Value::from(()), |value| value.into()),
+                ),
+                (
+                    ":pro_additional_evidence_requirement",
+                    information
+                        .pro_additional_evidence_requirement
+                        .map_or(Value::from(()), |value| value.into()),
+                ),
+                (
+                    ":pro_non_prosecution_decision",
+                    information
+                        .pro_non_prosecution_decision
+                        .map_or(Value::from(()), |value| value.into()),
+                ),
+                (
+                    ":pro_cessation_decision",
+                    information
+                        .pro_cessation_decision
+                        .map_or(Value::from(()), |value| value.into()),
+                ),
+                (
+                    ":updated_at",
+                    (SystemTime::now()
+                        .duration_since(UNIX_EPOCH)
+                        .unwrap()
+                        .as_millis() as i64)
+                        .into(),
+                ),
+            ][..],
+        )
+        .unwrap();
+
+    match statement.next() {
+        Ok(_) => return Ok(()),
+        Err(err) => {
+            println!("{}", err);
+            return Err("Fail to save information".into());
+        }
+    }
+}
+
 fn main() {
     let conn_mut = Mutex::new(sqlite::open("./db/docman.db").unwrap_or_else(|err| {
         println!("Error: {}", err);
@@ -511,7 +686,8 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             create_information,
             get_information_list,
-            get_new_information_list
+            get_new_information_list,
+            update_information
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

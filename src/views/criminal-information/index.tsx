@@ -41,7 +41,11 @@ type Setting = {
 
 const CriminalInformationView = () => {
   const [informationList, setInformationList] = useState<Information[]>([]);
-  const { isOpen, onClose, onOpen } = useDisclosure();
+  const {
+    isOpen: isCreateModalOpen,
+    onClose: onCreateModalClose,
+    onOpen: onCreateModalOpen,
+  } = useDisclosure();
 
   const [itemOffset, setItemOffset] = useState(0);
   const [totalItem, setTotalItem] = useState(0);
@@ -75,7 +79,6 @@ const CriminalInformationView = () => {
           order: Order.ASC,
           search: searchTerm ? searchTerm : null,
         }).then((data) => {
-          console.log(setting);
           setInformationList(data[0]);
           setTotalItem(data[1]);
         });
@@ -88,18 +91,16 @@ const CriminalInformationView = () => {
           order: Order.ASC,
           search: searchTerm ? searchTerm : null,
         }).then((data) => {
-          console.log(setting);
           setInformationList(data[0]);
           setTotalItem(data[1]);
         });
-        console.log("new");
         break;
       }
     }
   };
 
   const onAddNewInformation = () => {
-    onOpen();
+    onCreateModalOpen();
   };
 
   return (
@@ -159,7 +160,10 @@ const CriminalInformationView = () => {
           </MenuList>
         </Menu>
       </Flex>
-      <CriminalInformationTable informationList={informationList} />
+      <CriminalInformationTable
+        refresh={getListInformation}
+        informationList={informationList}
+      />
       <Paginator
         breakLabel="..."
         nextLabel={<ChevronRightIcon />}
@@ -181,8 +185,8 @@ const CriminalInformationView = () => {
         renderOnZeroPageCount={undefined}
       />
       <CreateInformationModal
-        isOpen={isOpen}
-        onClose={onClose}
+        isOpen={isCreateModalOpen}
+        onClose={onCreateModalClose}
         refeshInformationList={getListInformation}
       />
     </>

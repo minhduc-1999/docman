@@ -6,15 +6,25 @@ import {
   Th,
   Td,
   TableContainer,
+  useDisclosure,
 } from "@chakra-ui/react";
 import { Information } from "@/models/information";
 import moment from "moment";
+import { ViewInformationModal } from "./view-information-modal";
+import { useState } from "react";
 
 type Props = {
   informationList: Information[];
+  refresh: () => void;
 };
 
-const CriminalInformationTable = ({ informationList }: Props) => {
+const CriminalInformationTable = ({ informationList, refresh }: Props) => {
+  const [selectedInfor, setSelectedInfor] = useState<Information | null>(null);
+  const {
+    isOpen: isViewModalOpen,
+    onClose: onViewModalClose,
+    onOpen: onViewModalOpen,
+  } = useDisclosure();
   return (
     <TableContainer>
       <Table size={"sm"} variant="simple">
@@ -30,36 +40,46 @@ const CriminalInformationTable = ({ informationList }: Props) => {
           </Tr>
         </Thead>
         <Tbody>
-          {informationList.map(
-            (
-              {
-                id,
-                acceptanceNo,
-                acceptedAt,
-                plaintiff,
-                defendant,
-                description,
-                law,
-              },
-              index
-            ) => {
-              return (
-                <Tr key={index}>
-                  <Td>{index + 1}</Td>
-                  <Td>{acceptanceNo}</Td>
-                  <Td>
-                    {moment(acceptedAt.toISOString()).format("DD/MM/YYYY")}
-                  </Td>
-                  <Td>{plaintiff}</Td>
-                  <Td>{defendant}</Td>
-                  <Td>{description}</Td>
-                  <Td>{law}</Td>
-                </Tr>
-              );
-            }
-          )}
+          {informationList.map((inforItem, index) => {
+            const {
+              id,
+              acceptanceNo,
+              acceptedAt,
+              plaintiff,
+              defendant,
+              description,
+              law,
+            } = inforItem;
+            return (
+              <Tr
+                _hover={{ bgColor: "blue.50" }}
+                bgColor={id === selectedInfor?.id ? "blue.100" : "white"}
+                key={index}
+                onClick={() => {
+                  setSelectedInfor(inforItem);
+                }}
+                onDoubleClick={onViewModalOpen}
+              >
+                <Td>{index + 1}</Td>
+                <Td>{acceptanceNo}</Td>
+                <Td>{moment(acceptedAt.toISOString()).format("DD/MM/YYYY")}</Td>
+                <Td>{plaintiff}</Td>
+                <Td>{defendant}</Td>
+                <Td>{description}</Td>
+                <Td>{law}</Td>
+              </Tr>
+            );
+          })}
         </Tbody>
       </Table>
+      {selectedInfor && isViewModalOpen && (
+        <ViewInformationModal
+          isOpen={isViewModalOpen}
+          onClose={onViewModalClose}
+          information={selectedInfor}
+          refresh={refresh}
+        />
+      )}
     </TableContainer>
   );
 };
