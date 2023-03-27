@@ -6,12 +6,14 @@
 use core::panic;
 use std::{
     sync::Mutex,
-    time::{SystemTime, UNIX_EPOCH}
+    time::{SystemTime, UNIX_EPOCH},
 };
 
 use serde::{Deserialize, Serialize};
-use sqlite::{self, Connection, State, Value };
+use sqlite::{self, Connection, State, Value};
 use std::fmt;
+use tauri::{api::path};
+
 #[derive(Deserialize, Serialize, Debug)]
 struct Information {
     id: i64,
@@ -84,11 +86,12 @@ fn get_new_information_list<'r>(
     query_opt: InformationPageQueryOption,
 ) -> Result<(Vec<Information>, Option<i64>), String> {
     let conn = conn_mut.lock().expect("Fail to get connection");
-    let mut bindValues = vec![
+    let mut bind_values = vec![
         (":offset", query_opt.offset.into()),
         (":limit", query_opt.limit.into()),
     ];
-    let mut query = String::from("
+    let mut query = String::from(
+        "
         SELECT *, count(*) OVER() as total
         FROM information
         WHERE
@@ -100,10 +103,13 @@ fn get_new_information_list<'r>(
             created_at ASC
         LIMIT :limit
         OFFSET :offset
-    ");
+    ",
+    );
 
     if let Some(term) = query_opt.search {
-        query = format!("{}{}{}{}{}{}{}", "
+        query = format!(
+            "{}{}{}{}{}{}{}",
+            "
         SELECT *, count(*) over() as total
         FROM information
         WHERE 
@@ -111,28 +117,30 @@ fn get_new_information_list<'r>(
             inv_designation_no IS NULL AND
             pro_procurator IS NULL AND
             pro_designation_no IS NULL AND 
-            (acceptance_no like '%", &term[..], "%' OR
-        	plaintiff like '%" , &term[..] ,"%' OR
-        	defendant like '%" , &term[..] ,"%')
+            (acceptance_no like '%",
+            &term[..],
+            "%' OR
+        	plaintiff like '%",
+            &term[..],
+            "%' OR
+        	defendant like '%",
+            &term[..],
+            "%')
         ORDER BY
             created_at ASC
         LIMIT :limit
         OFFSET :offset
-    ");
+    "
+        );
     }
 
     let mut statement = conn.prepare::<&str>(&query[..]).unwrap();
-    let bind_result = statement
-        .bind::<&[(_, Value)]>(
-            &bindValues[..],
-        );
-    
+    let bind_result = statement.bind::<&[(_, Value)]>(&bind_values[..]);
+
     if let Err(err) = bind_result {
         println!("Fail to bind statement: {:?}", err);
-        return Err("Fail to get list information".into())
+        return Err("Fail to get list information".into());
     }
-
-    
 
     let mut informations: Vec<Information> = Vec::new();
     let mut total_item: Option<i64> = None;
@@ -177,58 +185,70 @@ fn get_new_information_list<'r>(
     Ok((informations, total_item))
 }
 
-
-
 #[tauri::command]
 fn get_information_list<'r>(
     conn_mut: tauri::State<'r, Mutex<Connection>>,
     query_opt: InformationPageQueryOption,
 ) -> Result<(Vec<Information>, Option<i64>), String> {
     let conn = conn_mut.lock().expect("Fail to get connection");
-    let mut bindValues = vec![
+    let mut bind_values = vec![
         (":offset", query_opt.offset.into()),
         (":limit", query_opt.limit.into()),
     ];
-    let mut query = String::from("
+    let mut query = String::from(
+        "
         SELECT *, count(*) OVER() as total
         FROM information
         ORDER BY
             created_at ASC
         LIMIT :limit
         OFFSET :offset
-    ");
+    ",
+    );
 
     if let Some(term) = query_opt.search {
-        query = format!("{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}", "
+        query = format!(
+            "{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}",
+            "
         SELECT *, count(*) over() as total
         FROM information
         WHERE 
-        	acceptance_no like '%", &term[..], "%' OR
-        	plaintiff like '%" , &term[..] ,"%' OR
-        	defendant like '%" , &term[..] ,"%' OR
-        	inv_investigator like '%" , &term[..] ,"%' OR
-        	pro_procurator like '%" , &term[..] ,"%' OR
-        	inv_designation_no like '%" , &term[..] ,"%' OR
-        	pro_designation_no like '%" , &term[..] ,"%'
+        	acceptance_no like '%",
+            &term[..],
+            "%' OR
+        	plaintiff like '%",
+            &term[..],
+            "%' OR
+        	defendant like '%",
+            &term[..],
+            "%' OR
+        	inv_investigator like '%",
+            &term[..],
+            "%' OR
+        	pro_procurator like '%",
+            &term[..],
+            "%' OR
+        	inv_designation_no like '%",
+            &term[..],
+            "%' OR
+        	pro_designation_no like '%",
+            &term[..],
+            "%'
         ORDER BY
             created_at ASC
         LIMIT :limit
         OFFSET :offset
-    ");
+    "
+        );
     }
 
     let mut statement = conn.prepare::<&str>(&query[..]).unwrap();
-    let bind_result = statement
-        .bind::<&[(_, Value)]>(
-            &bindValues[..],
-        );
-    
+    let bind_result = statement.bind::<&[(_, Value)]>(&bind_values[..]);
+
     if let Err(err) = bind_result {
         println!("Fail to bind statement: {:?}", err);
-        return Err("Fail to get list information".into())
+        return Err("Fail to get list information".into());
     }
-
-    
 
     let mut informations: Vec<Information> = Vec::new();
     let mut total_item: Option<i64> = None;
@@ -646,11 +666,11 @@ fn update_information(
 }
 
 fn main() {
-    let base_path = match home::home_dir() {
-        Some(path) => path.display().to_string(),
-        None => panic!("Impossible to get your home dir!"),
-    };
-    let conn_mut = Mutex::new(sqlite::open(base_path + "/db/docman.db".into()).unwrap_or_else(|err| {
+    let db_path = path::data_dir()
+        .expect("Cannot get data dir")
+        .join("docman.db").display().to_string();
+
+    let conn_mut = Mutex::new(sqlite::open(db_path).unwrap_or_else(|err| {
         println!("Error: {}", err);
         panic!("Cannot initialize database connection")
     }));
