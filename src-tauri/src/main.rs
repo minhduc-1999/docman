@@ -6,7 +6,7 @@
 use core::panic;
 use std::{
     sync::Mutex,
-    time::{SystemTime, UNIX_EPOCH},
+    time::{SystemTime, UNIX_EPOCH}
 };
 
 use serde::{Deserialize, Serialize};
@@ -646,7 +646,11 @@ fn update_information(
 }
 
 fn main() {
-    let conn_mut = Mutex::new(sqlite::open("./db/docman.db").unwrap_or_else(|err| {
+    let base_path = match home::home_dir() {
+        Some(path) => path.display().to_string(),
+        None => panic!("Impossible to get your home dir!"),
+    };
+    let conn_mut = Mutex::new(sqlite::open(base_path + "/db/docman.db".into()).unwrap_or_else(|err| {
         println!("Error: {}", err);
         panic!("Cannot initialize database connection")
     }));
