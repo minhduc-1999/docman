@@ -86,7 +86,7 @@ fn get_new_information_list<'r>(
     query_opt: InformationPageQueryOption,
 ) -> Result<(Vec<Information>, Option<i64>), String> {
     let conn = conn_mut.lock().expect("Fail to get connection");
-    let mut bind_values = vec![
+    let bind_values = vec![
         (":offset", query_opt.offset.into()),
         (":limit", query_opt.limit.into()),
     ];

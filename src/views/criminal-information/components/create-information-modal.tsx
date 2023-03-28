@@ -20,14 +20,12 @@ import {
   Textarea,
 } from "@chakra-ui/react";
 import React, { useState } from "react";
-import DatePicker from "react-datepicker";
 import { chakra } from "@chakra-ui/react";
-import "react-datepicker/dist/react-datepicker.css";
+// import "react-datepicker/dist/react-datepicker.css";
 import { registerLocale } from "react-datepicker";
 import vi from "date-fns/locale/vi";
 registerLocale("vi", vi);
-
-const AppDatePicker = chakra(DatePicker);
+import { DatePicker } from "@mui/x-date-pickers";
 
 import {
   Information,
@@ -144,8 +142,9 @@ export function CreateInformationModal({
                   </GridItem>
                   <GridItem>
                     <FormControl isRequired>
-                      <FormLabel fontSize={"sm"}>Ngày thụ lý</FormLabel>
-                      <AppDatePicker
+                      <FormLabel fontSize={"sm"}>Ngày thụ lý a</FormLabel>
+                      <DatePicker label="Basic date picker" />
+                      {/* <AppDatePicker
                         dateFormat={"dd/MM/yyyy"}
                         locale="vi"
                         border="1px solid"
@@ -156,7 +155,7 @@ export function CreateInformationModal({
                         onChange={(date: Date) => {
                           setAcceptedAt(date);
                         }}
-                      />
+                      /> */}
                     </FormControl>
                   </GridItem>
                   <GridItem colSpan={2}>
@@ -252,7 +251,7 @@ export function CreateInformationModal({
                       isRequired={haveInvestigation}
                     >
                       <FormLabel fontSize={"sm"}>Ngày phân công</FormLabel>
-                      <AppDatePicker
+                      {/* <AppDatePicker
                         dateFormat={"dd/MM/yyyy"}
                         locale={"vi"}
                         disabled={!haveInvestigation}
@@ -261,7 +260,7 @@ export function CreateInformationModal({
                         onChange={(date: Date) => {
                           setInvDesignatedAt(date);
                         }}
-                      />
+                      /> */}
                     </FormControl>
                   </GridItem>
                   <GridItem colSpan={2}>
@@ -308,7 +307,7 @@ export function CreateInformationModal({
                   <GridItem>
                     <FormControl isDisabled={!haveInvestigation}>
                       <FormLabel fontSize={"sm"}>Ngày</FormLabel>
-                      <AppDatePicker
+                      {/* <AppDatePicker
                         dateFormat={"dd/MM/yyyy"}
                         locale={"vi"}
                         disabled={!haveInvestigation}
@@ -317,13 +316,13 @@ export function CreateInformationModal({
                         onChange={(date: Date | null) => {
                           setInvHandledAt(date);
                         }}
-                      />
+                      /> */}
                     </FormControl>
                   </GridItem>
                   <GridItem>
                     <FormControl isDisabled={!haveInvestigation}>
                       <FormLabel fontSize={"sm"}>Chuyển</FormLabel>
-                      <AppDatePicker
+                      {/* <AppDatePicker
                         dateFormat={"dd/MM/yyyy"}
                         locale={"vi"}
                         disabled={!haveInvestigation}
@@ -332,13 +331,13 @@ export function CreateInformationModal({
                         onChange={(date: Date | null) => {
                           setInvTransferredAt(date);
                         }}
-                      />
+                      /> */}
                     </FormControl>
                   </GridItem>
                   <GridItem>
                     <FormControl isDisabled={!haveInvestigation}>
                       <FormLabel fontSize={"sm"}>Gia hạn</FormLabel>
-                      <AppDatePicker
+                      {/* <AppDatePicker
                         dateFormat={"dd/MM/yyyy"}
                         locale={"vi"}
                         disabled={!haveInvestigation}
@@ -347,13 +346,13 @@ export function CreateInformationModal({
                         onChange={(date: Date | null) => {
                           setInvExtendedAt(date);
                         }}
-                      />
+                      /> */}
                     </FormControl>
                   </GridItem>
                   <GridItem>
                     <FormControl isDisabled={!haveInvestigation}>
                       <FormLabel fontSize={"sm"}>Phục hồi</FormLabel>
-                      <AppDatePicker
+                      {/* <AppDatePicker
                         dateFormat={"dd/MM/yyyy"}
                         locale={"vi"}
                         disabled={!haveInvestigation}
@@ -362,13 +361,13 @@ export function CreateInformationModal({
                         onChange={(date: Date | null) => {
                           setInvRecoveredAt(date);
                         }}
-                      />
+                      /> */}
                     </FormControl>
                   </GridItem>
                   <GridItem>
                     <FormControl isDisabled={!haveInvestigation}>
                       <FormLabel fontSize={"sm"}>Hủy phân công</FormLabel>
-                      <AppDatePicker
+                      {/* <AppDatePicker
                         dateFormat={"dd/MM/yyyy"}
                         locale={"vi"}
                         disabled={!haveInvestigation}
@@ -377,7 +376,7 @@ export function CreateInformationModal({
                         onChange={(date: Date | null) => {
                           setInvCanceledAt(date);
                         }}
-                      />
+                      /> */}
                     </FormControl>
                   </GridItem>
                 </Grid>
@@ -432,7 +431,7 @@ export function CreateInformationModal({
                       isRequired={haveProsecution}
                     >
                       <FormLabel fontSize={"sm"}>Ngày</FormLabel>
-                      <AppDatePicker
+                      {/* <AppDatePicker
                         locale={"vi"}
                         disabled={!haveProsecution}
                         dateFormat={"dd/MM/yyyy"}
@@ -441,7 +440,7 @@ export function CreateInformationModal({
                         onChange={(date: Date) => {
                           setProDesignatedAt(date);
                         }}
-                      />
+                      /> */}
                     </FormControl>
                   </GridItem>
                   <GridItem colSpan={2}>

@@ -54,10 +54,13 @@
     },
     "windows": [
       {
-        "resizable": false,
+        "resizable": true,
         "title": "docman",
-        "maximized": true
+        "maximized": true,
+        "minHeight": 800,
+        "minWidth": 1000
       }
+
     ]
   }
 }
