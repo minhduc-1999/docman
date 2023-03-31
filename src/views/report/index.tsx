@@ -1,4 +1,3 @@
-import "@/views/criminal-information/paginator.css";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 

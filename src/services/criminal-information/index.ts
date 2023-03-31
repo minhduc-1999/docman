@@ -194,3 +194,9 @@ export async function getNewInformationList(
   });
   return [listInformation, result[1]];
 }
+
+export async function deleteInformation(ids: string[]): Promise<void> {
+  await invoke("delete_information", {
+    ids: ids.map((id) => id.toString()),
+  });
+}

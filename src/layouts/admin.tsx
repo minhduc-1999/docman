@@ -21,6 +21,7 @@ const drawerWidth: number = 240;
 
 type LayoutProps = {
   children: JSX.Element;
+  name: string;
 };
 
 interface AppBarProps extends MuiAppBarProps {
@@ -73,7 +74,7 @@ const Drawer = styled(MuiDrawer, {
 
 const mdTheme = createTheme();
 
-function Layout({ children }: LayoutProps) {
+function Layout({ children, name }: LayoutProps) {
   const [open, setOpen] = React.useState(true);
   const toggleDrawer = () => {
     setOpen(!open);
@@ -108,13 +109,13 @@ function Layout({ children }: LayoutProps) {
               noWrap
               sx={{ flexGrow: 1 }}
             >
-              Dashboard
+              {name}
             </Typography>
-            <IconButton color="inherit">
+            {/* <IconButton color="inherit">
               <Badge badgeContent={4} color="secondary">
                 <NotificationsIcon />
               </Badge>
-            </IconButton>
+            </IconButton> */}
           </Toolbar>
         </AppBar>
         <Drawer variant="permanent" open={open}>

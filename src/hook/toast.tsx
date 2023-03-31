@@ -1,32 +1,31 @@
-import { useToast, UseToastOptions } from "@chakra-ui/react";
+import { useSnackbar, OptionsWithExtraProps, VariantType } from "notistack";
 
 export function useAppToast() {
-  const toast = useToast();
-  const toastDefaultConfig: UseToastOptions = {
-    isClosable: true,
-    position: "top-right",
-    duration: 3000,
+  const { enqueueSnackbar } = useSnackbar();
+  const toastDefaultConfig: OptionsWithExtraProps<VariantType> = {
+    anchorOrigin: {
+      horizontal: "right",
+      vertical: "top",
+    },
+    autoHideDuration: 3000,
   };
   return {
     showSuccessToast: (title: string) => {
-      toast({
+      enqueueSnackbar(title, {
         ...toastDefaultConfig,
-        title: title,
-        status: "success",
+        variant: "success",
       });
     },
     showFailToast: (title: string) => {
-      toast({
+      enqueueSnackbar(title, {
         ...toastDefaultConfig,
-        title: title,
-        status: "error",
+        variant: "error",
       });
     },
     showInfoToast: (title: string) => {
-      toast({
+      enqueueSnackbar(title, {
         ...toastDefaultConfig,
-        title: title,
-        status: "info",
+        variant: "info",
       });
     },
   };

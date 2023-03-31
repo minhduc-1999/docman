@@ -24,19 +24,19 @@ export const routes: Array<Route> = [
     name: "Dashboard",
     path: "/",
     icon: <DashboardIcon />,
-    element: <Layout children={<DashboardView />} />,
+    element: <Layout name="Dashboard" children={<DashboardView />} />,
   },
   {
     name: "Tin báo",
     path: "/information",
     icon: <BallotIcon />,
-    element: <Layout children={<CriminalInformationView />} />,
+    element: <Layout name="Tin báo" children={<CriminalInformationView />} />,
   },
   {
     name: "Báo cáo",
     path: "/report",
     icon: <BarChartIcon />,
-    element: <Layout children={<ReportView />} />,
+    element: <Layout name="Báo cáo" children={<ReportView />} />,
   },
 ];
 

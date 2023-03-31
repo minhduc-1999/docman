@@ -12,7 +12,7 @@ use std::{
 use serde::{Deserialize, Serialize};
 use sqlite::{self, Connection, State, Value};
 use std::fmt;
-use tauri::{api::path};
+use tauri::api::path;
 
 #[derive(Deserialize, Serialize, Debug)]
 struct Information {
@@ -665,10 +665,29 @@ fn update_information(
     }
 }
 
+#[tauri::command]
+fn delete_information(
+    conn_mut: tauri::State<Mutex<Connection>>,
+    ids: Vec<String>,
+) -> Result<(), String> {
+    let conn = conn_mut.lock().unwrap();
+    let query = format!("DELETE FROM information WHERE id IN ({})", ids.join(","));
+    let mut statement = conn.prepare(query).unwrap();
+    match statement.next() {
+        Ok(_) => return Ok(()),
+        Err(err) => {
+            println!("{}", err);
+            return Err("Fail to delete information".into());
+        }
+    }
+}
+
 fn main() {
-    let db_path = path::data_dir()
-        .expect("Cannot get data dir")
-        .join("docman.db").display().to_string();
+    // let db_path = path::data_dir()
+    //     .expect("Cannot get data dir")
+    //     .join("docman.db").display().to_string();
+
+    let db_path = String::from("./db/docman.db");
 
     let conn_mut = Mutex::new(sqlite::open(db_path).unwrap_or_else(|err| {
         println!("Error: {}", err);
@@ -711,7 +730,8 @@ fn main() {
             create_information,
             get_information_list,
             get_new_information_list,
-            update_information
+            update_information,
+            delete_information
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
