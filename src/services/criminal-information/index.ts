@@ -200,3 +200,7 @@ export async function deleteInformation(ids: string[]): Promise<void> {
     ids: ids.map((id) => id.toString()),
   });
 }
+
+export async function exportExcel(): Promise<void> {
+  await invoke("export_excel");
+}

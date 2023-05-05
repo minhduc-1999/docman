@@ -9,11 +9,12 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
+use chrono::{NaiveDateTime};
 use serde::{Deserialize, Serialize};
-use sqlite::{self, Connection, State, Value};
+use sqlite::{self, Connection, State, Statement, Value};
 use std::fmt;
 use tauri::api::path;
-
+use xlsxwriter::{prelude::FormatAlignment, Format, Workbook};
 #[derive(Deserialize, Serialize, Debug)]
 struct Information {
     id: i64,
@@ -253,38 +254,7 @@ fn get_information_list<'r>(
     let mut informations: Vec<Information> = Vec::new();
     let mut total_item: Option<i64> = None;
     while let Ok(State::Row) = statement.next() {
-        let infor = Information {
-            id: statement.read::<i64, _>("id").unwrap(),
-            acceptance_no: statement.read::<String, _>("acceptance_no").unwrap(),
-            accepted_at: statement.read::<i64, _>("accepted_at").unwrap(),
-            plaintiff: statement.read::<String, _>("plaintiff").unwrap(),
-            defendant: statement.read::<String, _>("defendant").unwrap(),
-            description: statement.read::<String, _>("description").ok(),
-            law: statement.read::<String, _>("law").ok(),
-            inv_investigator: statement.read::<String, _>("inv_investigator").ok(),
-            inv_designated_at: statement.read::<i64, _>("inv_designated_at").ok(),
-            inv_designation_no: statement.read::<String, _>("inv_designation_no").ok(),
-            inv_status: statement.read::<i64, _>("inv_status").ok(),
-            inv_handled_at: statement.read::<i64, _>("inv_handled_at").ok(),
-            inv_handling_no: statement.read::<String, _>("inv_handling_no").ok(),
-            inv_transferred_at: statement.read::<i64, _>("inv_transferred_at").ok(),
-            inv_canceled_at: statement.read::<i64, _>("inv_canceled_at").ok(),
-            inv_recovered_at: statement.read::<i64, _>("inv_recovered_at").ok(),
-            inv_extended_at: statement.read::<i64, _>("inv_extended_at").ok(),
-            pro_procurator: statement.read::<String, _>("pro_procurator").ok(),
-            pro_designated_at: statement.read::<i64, _>("pro_designated_at").ok(),
-            pro_designation_no: statement.read::<String, _>("pro_designation_no").ok(),
-            pro_additional_evidence_requirement: statement
-                .read::<String, _>("pro_additional_evidence_requirement")
-                .ok(),
-            pro_cessation_decision: statement.read::<String, _>("pro_cessation_decision").ok(),
-            pro_non_prosecution_decision: statement
-                .read::<String, _>("pro_non_prosecution_decision")
-                .ok(),
-            created_at: statement.read::<i64, _>("created_at").ok(),
-            updated_at: statement.read::<i64, _>("updated_at").ok(),
-            deleted_at: statement.read::<i64, _>("deleted_at").ok(),
-        };
+        let infor = read_from_statement(&statement);
         informations.push(infor);
         if total_item.is_none() {
             total_item = statement.read::<i64, _>("total").ok();
@@ -682,6 +652,307 @@ fn delete_information(
     }
 }
 
+#[tauri::command]
+async fn export_excel(conn_mut: tauri::State<'_, Mutex<Connection>>) -> Result<(), String> {
+    let conn = conn_mut.lock().unwrap();
+    let query = format!("SELECT * FROM information");
+    let mut statement = conn.prepare(query).unwrap();
+    let mut informations: Vec<Information> = Vec::new();
+    while let Ok(State::Row) = statement.next() {
+        let infor = read_from_statement(&statement);
+        informations.push(infor);
+    }
+    let path = format!("./db/test.xlsx");
+    let workbook = Workbook::new(&path).expect("Cannot create workbook");
+    let mut sheet1 = workbook
+        .add_worksheet(None)
+        .expect("Cannot create worksheet");
+
+    let title_format = Format::new()
+        .set_align(FormatAlignment::CenterAcross)
+        .set_align(FormatAlignment::Center)
+        .set_bold()
+        .to_owned();
+    sheet1.merge_range(0, 0, 0, 22, "Số liệu tin báo", Some(&title_format));
+    sheet1.merge_range(1, 1, 1, 6, "Nội dung tin báo", Some(&title_format));
+    sheet1.merge_range(1, 7, 1, 15, "Cơ quan điếu tra", Some(&title_format));
+    sheet1.merge_range(1, 16, 1, 22, "Viện kiểm sát", Some(&title_format));
+
+    sheet1.write_string(2, 0, &format!("STT"), Some(&title_format));
+    sheet1.write_string(2, 1, &format!("Số TL"), Some(&title_format));
+    sheet1.write_string(2, 2, &format!("Ngày TL"), Some(&title_format));
+    sheet1.write_string(2, 3, &format!("Nguyên đơn"), Some(&title_format));
+    sheet1.write_string(2, 4, &format!("Bị đơn"), Some(&title_format));
+    sheet1.write_string(2, 5, &format!("Nội dung"), Some(&title_format));
+    sheet1.write_string(2, 6, &format!("Điều luật"), Some(&title_format));
+    sheet1.write_string(2, 7, &format!("Điều tra viên"), Some(&title_format));
+    sheet1.write_string(2, 8, &format!("Số PC"), Some(&title_format));
+    sheet1.write_string(2, 9, &format!("Ngày PC"), Some(&title_format));
+    sheet1.write_string(2, 10, &format!("Trạng thái"), Some(&title_format));
+    sheet1.write_string(2, 11, &format!("Số"), Some(&title_format));
+    sheet1.write_string(2, 12, &format!("Ngày"), Some(&title_format));
+    sheet1.write_string(2, 13, &format!("Chuyển"), Some(&title_format));
+    sheet1.write_string(2, 14, &format!("Gia hạn"), Some(&title_format));
+    sheet1.write_string(2, 15, &format!("Phục hồi"), Some(&title_format));
+    sheet1.write_string(2, 16, &format!("Hủy"), Some(&title_format));
+    sheet1.write_string(2, 17, &format!("KSV thụ lý"), Some(&title_format));
+    sheet1.write_string(2, 18, &format!("Số QĐPC"), Some(&title_format));
+    sheet1.write_string(2, 19, &format!("Ngày"), Some(&title_format));
+    sheet1.write_string(
+        2,
+        20,
+        &format!("Trao đổi/Yêu cầu BSCC"),
+        Some(&title_format),
+    );
+    sheet1.write_string(2, 21, &format!("Kết luận QĐKKT"), Some(&title_format));
+    sheet1.write_string(2, 22, &format!("Kết luận TĐC"), Some(&title_format));
+
+    for (index, information) in informations.iter().enumerate() {
+        let row: u32 = (2 + index + 1).try_into().unwrap();
+        sheet1.write_string(row, 0, &format!("{}", index + 1), None);
+        sheet1.write_string(row, 1, &information.acceptance_no, None);
+
+        sheet1.write_string(
+            row,
+            3,
+            &NaiveDateTime::from_timestamp_millis(information.accepted_at)
+                .expect("Cannot convert accepted_at to Datetime")
+                .format("%d-%m-%Y")
+                .to_string(),
+            None,
+        );
+        sheet1.write_string(row, 4, &information.plaintiff, None);
+        sheet1.write_string(row, 5, &information.defendant, None);
+        sheet1.write_string(
+            row,
+            6,
+            &information
+                .description
+                .as_ref()
+                .unwrap_or(&String::from("")),
+            None,
+        );
+        sheet1.write_string(
+            row,
+            7,
+            &information.law.as_ref().unwrap_or(&String::from("")),
+            None,
+        );
+
+        sheet1.write_string(
+            row,
+            8,
+            &information
+                .inv_investigator
+                .as_ref()
+                .unwrap_or(&String::from("")),
+            None,
+        );
+        sheet1.write_string(
+            row,
+            10,
+            &information
+                .inv_designation_no
+                .as_ref()
+                .unwrap_or(&String::from("")),
+            None,
+        );
+        if let Some(inv_designated_at) = information.inv_designated_at {
+            sheet1.write_string(
+                row,
+                9,
+                &NaiveDateTime::from_timestamp_millis(inv_designated_at)
+                    .expect("Cannot convert inv_designated_at to Datetime")
+                    .format("%d-%m-%Y")
+                    .to_string(),
+                None,
+            );
+        } else {
+            sheet1.write_string(row, 9, "", None);
+        }
+
+        sheet1.write_string(
+            row,
+            11,
+            &information
+                .inv_handling_no
+                .as_ref()
+                .unwrap_or(&String::from("")),
+            None,
+        );
+
+        if let Some(inv_handled_at) = information.inv_handled_at {
+            sheet1.write_string(
+                row,
+                12,
+                &NaiveDateTime::from_timestamp_millis(inv_handled_at)
+                    .expect("Cannot convert inv_handled_at to Datetime")
+                    .format("%d-%m-%Y")
+                    .to_string(),
+                None,
+            );
+        } else {
+            sheet1.write_string(row, 12, "", None);
+        }
+
+        if let Some(inv_transferred_at) = information.inv_transferred_at {
+            sheet1.write_string(
+                row,
+                13,
+                &NaiveDateTime::from_timestamp_millis(inv_transferred_at)
+                    .expect("Cannot convert inv_transferred_at to Datetime")
+                    .format("%d-%m-%Y")
+                    .to_string(),
+                None,
+            );
+        } else {
+            sheet1.write_string(row, 13, "", None);
+        }
+
+        if let Some(inv_extended_at) = information.inv_extended_at {
+            sheet1.write_string(
+                row,
+                14,
+                &NaiveDateTime::from_timestamp_millis(inv_extended_at)
+                    .expect("Cannot convert inv_extended_at to Datetime")
+                    .format("%d-%m-%Y")
+                    .to_string(),
+                None,
+            );
+        } else {
+            sheet1.write_string(row, 14, "", None);
+        }
+
+        if let Some(inv_recovered_at) = information.inv_recovered_at {
+            sheet1.write_string(
+                row,
+                15,
+                &NaiveDateTime::from_timestamp_millis(inv_recovered_at)
+                    .expect("Cannot convert inv_recovered_at to Datetime")
+                    .format("%d-%m-%Y")
+                    .to_string(),
+                None,
+            );
+        } else {
+            sheet1.write_string(row, 15, "", None);
+        }
+
+        if let Some(inv_canceled_at) = information.inv_canceled_at {
+            sheet1.write_string(
+                row,
+                16,
+                &NaiveDateTime::from_timestamp_millis(inv_canceled_at)
+                    .expect("Cannot convert inv_canceled_at to Datetime")
+                    .format("%d-%m-%Y")
+                    .to_string(),
+                None,
+            );
+        } else {
+            sheet1.write_string(row, 16, "", None);
+        }
+
+        sheet1.write_string(
+            row,
+            17,
+            &information
+                .pro_procurator
+                .as_ref()
+                .unwrap_or(&String::from("")),
+            None,
+        );
+        sheet1.write_string(
+            row,
+            18,
+            &information
+                .pro_designation_no
+                .as_ref()
+                .unwrap_or(&String::from("")),
+            None,
+        );
+        if let Some(pro_designated_at) = information.pro_designated_at {
+            sheet1.write_string(
+                row,
+                19,
+                &NaiveDateTime::from_timestamp_millis(pro_designated_at)
+                    .expect("Cannot convert pro_designated_at to Datetime")
+                    .format("%d-%m-%Y")
+                    .to_string(),
+                None,
+            );
+        } else {
+            sheet1.write_string(row, 19, "", None);
+        }
+
+        sheet1.write_string(
+            row,
+            20,
+            &information
+                .pro_additional_evidence_requirement
+                .as_ref()
+                .unwrap_or(&String::from("")),
+            None,
+        );
+        sheet1.write_string(
+            row,
+            22,
+            &information
+                .pro_non_prosecution_decision
+                .as_ref()
+                .unwrap_or(&String::from("")),
+            None,
+        );
+        sheet1.write_string(
+            row,
+            21,
+            &information
+                .pro_cessation_decision
+                .as_ref()
+                .unwrap_or(&String::from("")),
+            None,
+        );
+    }
+
+    workbook.close();
+
+    Ok(())
+}
+
+fn read_from_statement(statement: &Statement) -> Information {
+    let infor = Information {
+        id: statement.read::<i64, _>("id").unwrap(),
+        acceptance_no: statement.read::<String, _>("acceptance_no").unwrap(),
+        accepted_at: statement.read::<i64, _>("accepted_at").unwrap(),
+        plaintiff: statement.read::<String, _>("plaintiff").unwrap(),
+        defendant: statement.read::<String, _>("defendant").unwrap(),
+        description: statement.read::<String, _>("description").ok(),
+        law: statement.read::<String, _>("law").ok(),
+        inv_investigator: statement.read::<String, _>("inv_investigator").ok(),
+        inv_designated_at: statement.read::<i64, _>("inv_designated_at").ok(),
+        inv_designation_no: statement.read::<String, _>("inv_designation_no").ok(),
+        inv_status: statement.read::<i64, _>("inv_status").ok(),
+        inv_handled_at: statement.read::<i64, _>("inv_handled_at").ok(),
+        inv_handling_no: statement.read::<String, _>("inv_handling_no").ok(),
+        inv_transferred_at: statement.read::<i64, _>("inv_transferred_at").ok(),
+        inv_canceled_at: statement.read::<i64, _>("inv_canceled_at").ok(),
+        inv_recovered_at: statement.read::<i64, _>("inv_recovered_at").ok(),
+        inv_extended_at: statement.read::<i64, _>("inv_extended_at").ok(),
+        pro_procurator: statement.read::<String, _>("pro_procurator").ok(),
+        pro_designated_at: statement.read::<i64, _>("pro_designated_at").ok(),
+        pro_designation_no: statement.read::<String, _>("pro_designation_no").ok(),
+        pro_additional_evidence_requirement: statement
+            .read::<String, _>("pro_additional_evidence_requirement")
+            .ok(),
+        pro_cessation_decision: statement.read::<String, _>("pro_cessation_decision").ok(),
+        pro_non_prosecution_decision: statement
+            .read::<String, _>("pro_non_prosecution_decision")
+            .ok(),
+        created_at: statement.read::<i64, _>("created_at").ok(),
+        updated_at: statement.read::<i64, _>("updated_at").ok(),
+        deleted_at: statement.read::<i64, _>("deleted_at").ok(),
+    };
+    infor
+}
+
 fn main() {
     // let db_path = path::data_dir()
     //     .expect("Cannot get data dir")
@@ -693,7 +964,7 @@ fn main() {
         println!("Error: {}", err);
         panic!("Cannot initialize database connection")
     }));
-    let query = "
+    let query: &str = "
         CREATE TABLE IF NOT EXISTS information (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             acceptance_no VARCHAR(50) NOT NULL UNIQUE, 
@@ -731,7 +1002,8 @@ fn main() {
             get_information_list,
             get_new_information_list,
             update_information,
-            delete_information
+            delete_information,
+            export_excel
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

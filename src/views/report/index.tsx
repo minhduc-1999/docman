@@ -7,6 +7,7 @@ import FolderOpenIcon from "@mui/icons-material/FolderOpen";
 import { useState } from "react";
 import { Moment } from "moment";
 import moment from "moment";
+import { exportExcel } from "@/services/criminal-information";
 const ReportView = () => {
   const [storagePath, setStoragePath] = useState<string>("");
   const [from, setFrom] = useState<Date | null>(null);
@@ -80,10 +81,7 @@ const ReportView = () => {
                 variant="contained"
                 fullWidth
                 onClick={() => {
-                  if (!storagePath || !from || !to) {
-                    setIsError(true);
-                    return;
-                  }
+                  exportExcel();
                 }}
               >
                 Tạo báo cáo

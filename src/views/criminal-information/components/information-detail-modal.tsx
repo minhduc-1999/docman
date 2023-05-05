@@ -647,7 +647,6 @@ export function ViewInformationModal({ information, refresh, onClose }: Props) {
                 onClose();
               })
               .catch((err) => {
-                console.log(err);
                 showFailToast(`${actionLabel} thất bại`);
               });
           }}
