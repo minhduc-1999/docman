@@ -20,15 +20,15 @@ export type Route = {
 };
 
 export const routes: Array<Route> = [
-  {
-    name: "Dashboard",
-    path: "/",
-    icon: <DashboardIcon />,
-    element: <Layout name="Dashboard" children={<DashboardView />} />,
-  },
+  // {
+  //   name: "Dashboard",
+  //   path: "/",
+  //   icon: <DashboardIcon />,
+  //   element: <Layout name="Dashboard" children={<DashboardView />} />,
+  // },
   {
     name: "Tin báo",
-    path: "/information",
+    path: "/",
     icon: <BallotIcon />,
     element: <Layout name="Tin báo" children={<CriminalInformationView />} />,
   },
