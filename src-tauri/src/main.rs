@@ -392,7 +392,7 @@ fn update_information(
             .as_millis() as i64)
     });
 
-    if let Err(e) = result {
+    if let Err(_) = result {
         return Err("Fail to update information".into());
     }
 

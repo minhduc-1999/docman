@@ -19,7 +19,7 @@ serde = { version = "1.0", features = ["derive"] }
 tauri = { version = "1.2", features = ["dialog-open", "dialog-save", "path-all", "shell-open"] }
 xlsxwriter = "0.6.0"
 chrono = "0.4.24"
-rusqlite = "0.29.0"
+rusqlite = { version = "0.29.0", features = ["bundled"] }
 
 [features]
 # by default Tauri runs in production mode
