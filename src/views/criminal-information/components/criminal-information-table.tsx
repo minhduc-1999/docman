@@ -521,7 +521,7 @@ export default function CriminalInformationTable() {
           onDeleteClick={() => {
             deleteInformation(selected)
               .then(() => {
-                showSuccessToast(`Xóa thành công`);
+                showSuccessToast({ title: `Xóa thành công` });
                 setSelected([]);
                 getListInformation({
                   offset: page,
@@ -530,8 +530,9 @@ export default function CriminalInformationTable() {
                   search: searchTerm ? searchTerm : null,
                 });
               })
-              .catch(() => {
-                showFailToast("Xóa thất bại");
+              .catch((err) => {
+                console.error(err);
+                showFailToast({ title: "Xóa thất bại" });
               });
           }}
           onAddingClick={() => {

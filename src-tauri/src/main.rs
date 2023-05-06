@@ -9,8 +9,8 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-use chrono::{FixedOffset, NaiveDateTime, TimeZone, Utc};
-use rusqlite::{named_params, Connection, Result, Row, ToSql};
+use chrono::{FixedOffset, NaiveDateTime, TimeZone};
+use rusqlite::{named_params, Connection, Result, Row};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use tauri::api::path;
@@ -234,8 +234,7 @@ fn create_information(
     conn_mut: tauri::State<Mutex<Connection>>,
     information: Information,
 ) -> Result<(), String> {
-    let conn = conn_mut.lock().unwrap();
-    print!("{:?}", information);
+    let conn: std::sync::MutexGuard<Connection> = conn_mut.lock().unwrap();
     let query = "
         INSERT INTO information (
             acceptance_no,
@@ -394,7 +393,6 @@ fn update_information(
     });
 
     if let Err(e) = result {
-        println!("{:?}", e);
         return Err("Fail to update information".into());
     }
 
@@ -689,19 +687,30 @@ fn fill_data(sheet: &mut Worksheet, data: &Vec<Information>) -> Result<(), XlsxE
     Ok(())
 }
 
+#[derive(Deserialize, Debug)]
+struct ExportSetting {
+    from: i64,
+    to: i64,
+    path: String,
+}
+
 #[tauri::command]
-async fn export_excel(conn_mut: tauri::State<'_, Mutex<Connection>>) -> Result<(), String> {
+fn export_excel(
+    conn_mut: tauri::State<Mutex<Connection>>,
+    setting: ExportSetting,
+) -> Result<String, String> {
     let conn = conn_mut.lock().unwrap();
-    let query = "SELECT * FROM information";
+    let query = "SELECT * FROM information WHERE accepted_at BETWEEN :from AND :to";
     let mut stmt = conn.prepare(&query).unwrap();
     let mut informations: Vec<Information> = Vec::new();
-    let mut rows = stmt.query(()).unwrap();
+    let mut rows = stmt
+        .query(&[(":from", &setting.from), (":to", &setting.to)])
+        .unwrap();
     while let Ok(Some(row)) = rows.next() {
         let item = read_from_row(&row);
         informations.push(item);
     }
-    let path = format!("./db/test.xlsx");
-    let workbook = Workbook::new(&path).expect("Cannot create workbook");
+    let workbook = Workbook::new(&setting.path).expect("Cannot create workbook");
     let mut sheet = workbook
         .add_worksheet(None)
         .expect("Cannot create worksheet");
@@ -716,7 +725,7 @@ async fn export_excel(conn_mut: tauri::State<'_, Mutex<Connection>>) -> Result<(
 
     workbook.close().expect("Fail to close workbook");
 
-    Ok(())
+    Ok(setting.path.clone())
 }
 
 fn read_from_row(row: &Row) -> Information {
@@ -753,11 +762,13 @@ fn read_from_row(row: &Row) -> Information {
 }
 
 fn main() {
-    // let db_path = path::data_dir()
-    //     .expect("Cannot get data dir")
-    //     .join("docman.db").display().to_string();
+    let db_path = path::data_dir()
+        .expect("Cannot get data dir")
+        .join("docman.db")
+        .display()
+        .to_string();
 
-    let db_path = String::from("./db/docman.db");
+    // let db_path = String::from("./db/docman.db");
 
     let conn_mut = Mutex::new(Connection::open(db_path).unwrap_or_else(|err| {
         println!("Error: {}", err);

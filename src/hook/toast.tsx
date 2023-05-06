@@ -1,4 +1,14 @@
-import { useSnackbar, OptionsWithExtraProps, VariantType } from "notistack";
+import {
+  useSnackbar,
+  OptionsWithExtraProps,
+  VariantType,
+  SnackbarAction,
+} from "notistack";
+
+type ToastConfig = {
+  title: string;
+  action?: SnackbarAction;
+};
 
 export function useAppToast() {
   const { enqueueSnackbar } = useSnackbar();
@@ -10,22 +20,28 @@ export function useAppToast() {
     autoHideDuration: 3000,
   };
   return {
-    showSuccessToast: (title: string) => {
+    showSuccessToast: (config: ToastConfig) => {
+      const { title, action } = config;
       enqueueSnackbar(title, {
         ...toastDefaultConfig,
         variant: "success",
+        action,
       });
     },
-    showFailToast: (title: string) => {
+    showFailToast: (config: ToastConfig) => {
+      const { title, action } = config;
       enqueueSnackbar(title, {
         ...toastDefaultConfig,
         variant: "error",
+        action,
       });
     },
-    showInfoToast: (title: string) => {
+    showInfoToast: (config: ToastConfig) => {
+      const { title, action } = config;
       enqueueSnackbar(title, {
         ...toastDefaultConfig,
         variant: "info",
+        action,
       });
     },
   };

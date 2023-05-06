@@ -642,12 +642,13 @@ export function ViewInformationModal({ information, refresh, onClose }: Props) {
             promise
               .then(() => {
                 clear();
-                showSuccessToast(`${actionLabel} thành công`);
+                showSuccessToast({ title: `${actionLabel} thành công` });
                 refresh();
                 onClose();
               })
               .catch((err) => {
-                showFailToast(`${actionLabel} thất bại`);
+                console.error(err);
+                showFailToast({ title: `${actionLabel} thất bại` });
               });
           }}
         >

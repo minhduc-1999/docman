@@ -144,8 +144,7 @@ export async function getInformationList(
       prosecutionInfor
     );
   });
-
-  return [listInformation, result[1]];
+  return [listInformation, listInformation.length > 0 ? result[1] : 0];
 }
 
 export async function getNewInformationList(
@@ -192,7 +191,7 @@ export async function getNewInformationList(
       prosecutionInfor
     );
   });
-  return [listInformation, result[1]];
+  return [listInformation, listInformation.length > 0 ? result[1] : 0];
 }
 
 export async function deleteInformation(ids: string[]): Promise<void> {
@@ -201,6 +200,19 @@ export async function deleteInformation(ids: string[]): Promise<void> {
   });
 }
 
-export async function exportExcel(): Promise<void> {
-  await invoke("export_excel");
+export type SummarySetting = {
+  from: Date;
+  to: Date;
+  path: string;
+};
+
+export async function exportExcel(setting: SummarySetting): Promise<string> {
+  const { from, to, path } = setting;
+  return invoke("export_excel", {
+    setting: {
+      from: from.getTime(),
+      to: to.getTime(),
+      path,
+    },
+  });
 }

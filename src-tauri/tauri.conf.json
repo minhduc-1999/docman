@@ -11,7 +11,16 @@
   },
   "tauri": {
     "allowlist": {
-      "all": true
+      "path": {
+        "all": true
+      },
+      "dialog": {
+        "open": true,
+        "save": true
+      },
+      "shell": {
+        "open": "\\.xlsx$"
+      }
     },
     "bundle": {
       "active": true,
